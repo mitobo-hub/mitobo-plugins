@@ -1,0 +1,25 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<title>mtb_io package</title>
+</head>
+<body bgcolor="white">
+
+Provides plugins for MiToBo image I/O.
+<p>
+Here one can find plugins for reading and writing MiToBo images. Compared to 
+common ImageJ images MiToBo images contain additional meta data about image
+properties. In addition, information about operators applied to an image
+are available allowing to reconstruct the whole processing pipeline an image
+has run through. 
+<p>
+Available meta data can be found in an additional XML meta data file which is
+saved to disc together with the image. When images are read from disc the 
+existence of a meta data file is checked, if available parsed, and the 
+meta data is attached to the image where it can be accessed by any plugin or
+operator the image is passed to.
+
+@author	moeller
+
+</body>
+</html>

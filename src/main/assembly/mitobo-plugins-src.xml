@@ -1,0 +1,38 @@
+<assembly>
+  <id>sources</id>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <formats>
+    <format>jar</format>
+  </formats>
+  <fileSets>
+    <fileSet>
+      <directory>src/main/java</directory>
+      <filtered>true</filtered>
+    </fileSet>
+<!-- Attention, don't include test sources, leads to problems in Javadoc! -->
+<!--    <fileSet>
+      <directory>src/test/java</directory>
+    </fileSet>-->
+    <fileSet>
+      <directory>src/main/resources</directory>
+      <outputDirectory></outputDirectory>
+      <excludes>
+        <exclude>plugins.config</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>../export/share/docu</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>*.pdf</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>../export/share/logo</directory>
+      <outputDirectory>share/logo</outputDirectory>
+      <includes>
+	<include>MiToBo_logo.*</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</assembly>
