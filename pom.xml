@@ -256,7 +256,7 @@
 	    <additionalDependency>
 	      <groupId>de.unihalle.informatik.MiToBo</groupId>
 	      <artifactId>mitobo</artifactId>
-	      <version>1.6</version>
+	      <version>1.6.1-SNAPSHOT</version>
 	    </additionalDependency>
 	  </additionalDependencies>
 	</configuration>
@@ -299,8 +299,8 @@
     </repository>
     <repository>
       <id>snapshots</id>
-      <name>Archiva Snapshot Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots/</url>
+      <name>Archiva Public Snapshot Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
       <layout>default</layout>
     </repository>
     <repository>
@@ -321,7 +321,7 @@
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo</groupId>
       <artifactId>mitobo</artifactId>
-      <version>1.6</version>
+      <version>1.6.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>net.imagej</groupId>
@@ -345,8 +345,8 @@
       <distributionManagement>
 	<snapshotRepository>
 	  <id>snapshots</id>
-	  <name>Archiva Snapshot Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots/</url>
+	  <name>Archiva Public Snapshot Repository on 'moon'</name>
+	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
 	</snapshotRepository>
 	<repository>
 	  <id>internal</id>
@@ -363,8 +363,8 @@
       <distributionManagement>
 	<snapshotRepository>
 	  <id>snapshots</id>
-	  <name>Archiva Snapshot Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots/</url>
+	  <name>Archiva Public Snapshot Repository on 'moon'</name>
+	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
 	</snapshotRepository>
 	<repository>
 	  <id>releases</id>
