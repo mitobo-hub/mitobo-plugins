@@ -35,30 +35,30 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>../export/intlibs</directory>
+      <directory>target/mitobo/mitobo-${mitobo.version}/share/intlibs</directory>
       <outputDirectory>lib</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>../macros/toolsets</directory>
+      <directory>macros/toolsets</directory>
       <outputDirectory>macros/toolsets</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>../export/share/docu</directory>
+      <directory>target/mitobo/mitobo-${mitobo.version}/share/docu</directory>
       <outputDirectory></outputDirectory>
       <includes>
         <include>*.pdf</include>
       </includes>
     </fileSet>
     <fileSet>
-      <directory>../export/share/scripts/R</directory>
+      <directory>target/mitobo/mitobo-${mitobo.version}/share/scripts/R</directory>
       <outputDirectory>share/scripts/R</outputDirectory>
       <includes>
         <include>MTB*</include>
       </includes>
     </fileSet>
     <fileSet>
-      <directory>../export/share/testimages</directory>
-      <outputDirectory>testimages</outputDirectory>
+      <directory>target/mitobo/mitobo-${mitobo.version}/share/testimages</directory>
+      <outputDirectory>share/testimages</outputDirectory>
       <includes>
         <include>scratch_example1.tif</include>
       </includes>
@@ -69,13 +69,7 @@
     <dependencySet>
       <outputDirectory>plugins/jars</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
-      <!-- it is unclear why, but "loci_tools" triggers redundant dependencies ImageJ complains about... -->
       <excludes>
-<!--
-	<exclude>loci:bio-formats:jar:*</exclude>
-	<exclude>loci:loci_plugins:jar:*</exclude>
-	<exclude>de.unihalle.informatik.Alida:alida-help</exclude>
--->
 	<exclude>de.unihalle.informatik.MiToBo.native:mitobo-native-${native.libdir}:jar:*</exclude>
       </excludes>
     </dependencySet>

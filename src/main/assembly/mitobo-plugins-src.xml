@@ -21,14 +21,14 @@
       </excludes>
     </fileSet>
     <fileSet>
-      <directory>../export/share/docu</directory>
+      <directory>target/mitobo/mitobo-${mitobo.version}/share/docu</directory>
       <outputDirectory></outputDirectory>
       <includes>
         <include>*.pdf</include>
       </includes>
     </fileSet>
     <fileSet>
-      <directory>../export/share/logo</directory>
+      <directory>target/mitobo/mitobo-${mitobo.version}/share/logo</directory>
       <outputDirectory>share/logo</outputDirectory>
       <includes>
 	<include>MiToBo_logo.*</include>
