@@ -85,6 +85,7 @@
     <!-- define a default native directory, does not work in all cases,
 	 but avoids that Maven fails completely -->
     <native.libdir>lib64</native.libdir>
+    <mitobo.version>1.6.1-SNAPSHOT</mitobo.version>
   </properties>
 
   <build>
@@ -106,7 +107,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/../plugins</outputDirectory>
+              <outputDirectory>${basedir}/plugins</outputDirectory>
               <resources>          
                 <resource>
 		  <directory>target/classes</directory>
@@ -170,6 +171,43 @@
               </resources>
             </configuration>
           </execution>
+        </executions>
+      </plugin>
+
+      <!-- copy dependencies incl. help jar to local folder -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+	<version>2.10</version>
+        <executions>
+	  <execution>
+	    <id>unpack</id>
+	    <phase>compile</phase>
+	    <goals>
+	      <goal>unpack</goal>
+	    </goals>
+	    <configuration>
+	      <artifactItems>
+		<artifactItem>
+		  <groupId>de.unihalle.informatik.MiToBo.native</groupId>
+		  <artifactId>mitobo-native-${native.libdir}</artifactId>
+		  <version>1.0</version>
+		  <type>jar</type>
+		  <overWrite>true</overWrite>
+		  <outputDirectory>target/natives/${native.libdir}</outputDirectory>
+		</artifactItem>
+		<artifactItem>
+		  <groupId>de.unihalle.informatik.MiToBo</groupId>
+		  <artifactId>mitobo</artifactId>
+		  <version>${mitobo.version}</version>
+		  <classifier>bin</classifier>
+		  <type>zip</type>
+		  <overWrite>true</overWrite>
+		  <outputDirectory>target/mitobo/</outputDirectory>
+		</artifactItem>
+	      </artifactItems>
+	    </configuration>
+	  </execution>
         </executions>
       </plugin>
 
@@ -256,7 +294,7 @@
 	    <additionalDependency>
 	      <groupId>de.unihalle.informatik.MiToBo</groupId>
 	      <artifactId>mitobo</artifactId>
-	      <version>1.6.1-SNAPSHOT</version>
+	      <version>${mitobo.version}</version>
 	    </additionalDependency>
 	  </additionalDependencies>
 	</configuration>
@@ -275,6 +313,38 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+
+      <!-- configuration to run MiToBo via mvn exec:exec -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+	<configuration>
+          <executable>java</executable>
+	  <classpathScope>runtime</classpathScope>
+          <arguments>
+	    <argument>-classpath</argument>
+            <!-- automatically creates the classpath using all project dependencies,
+                 also adding the project build directory -->
+            <classpath/>
+	    <argument>-Xms2048m</argument>
+	    <argument>-Xmx2048m</argument>
+	    <argument>-Djava.library.path=target/natives/${native.libdir}</argument>
+	    <argument>-Dalida.versionprovider_class=de.unihalle.informatik.Alida.version.ALDVersionProviderGit</argument>
+	    <argument>-Dalida.oprunner.level=standard</argument>
+            <argument>ij.ImageJ</argument>
+            <argument>-ijpath</argument>
+            <argument>.</argument>
+          </arguments>
+        </configuration>
       </plugin>
     </plugins>
 
@@ -321,14 +391,16 @@
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo</groupId>
       <artifactId>mitobo</artifactId>
-      <version>1.6.1-SNAPSHOT</version>
+      <version>${mitobo.version}</version>
     </dependency>
+<!--
     <dependency>
       <groupId>net.imagej</groupId>
       <artifactId>ij</artifactId>
-      <version>1.49m</version>
+      <version>1.49u</version>
       <scope>compile</scope>
     </dependency>
+-->
   </dependencies>
 
   <scm>
