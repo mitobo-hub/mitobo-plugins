@@ -1,0 +1,149 @@
+ //
+ // This file is part of MiToBo, the Microscope Image Analysis Toolbox.
+ //
+ // Copyright (C) 2010 - @YEAR@
+ //
+ // This program is free software: you can redistribute it and/or modify
+ // it under the terms of the GNU General Public License as published by
+ // the Free Software Foundation, either version 3 of the License, or
+ // (at your option) any later version.
+ //
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ // GNU General Public License for more details.
+ //
+ // You should have received a copy of the GNU General Public License
+ // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ //
+ // Fore more information on MiToBo, visit
+ //
+ //    http://www.informatik.uni-halle.de/mitobo/
+ //
+ //
+
+///////////////////////////////////
+// MiToBo Menu Toolset
+///////////////////////////////////
+
+
+// empty spaces (empty tool icon) between native ImageJ tools and MiToBo toolset
+macro "Unused Tool- 1" {}
+macro "Unused Tool- 2" {}
+
+macro "MiToBo Runner Action Tool - C119D41CcccDf0DffC78cD7fCdddDf1Df2Df3Df4Df5Df6Df7DfcDfdDfeC45bD34D5cCbcfD71D72D73D74D75D76D77D78D79D7aD7bC88eD55CeefDc1Dc2Dc3Dc4Dc5DccDcdDceC44aD1fD7eCabeD86C99bDfaCddfDb1Db2Db3Db4Db5Db8Db9DbaDbbDbcDbdDbeC55cD23D2cCcdfD91D92D93D94D95D98D99D9aD9bD9cD9dD9eC9afD21D26D27D28D29CfffDe1De2De3De4De5De6De7DecDedDeeC34aD0bD0cD0dD0eD5eCbbeDcbC88dD06D07D08D09D61CddfDa1Da2Da3Da4Da5DacDadDaeC56bD0fCccfD81D82D83D84D85D88D89D8aD8bD8cC9aeD8dCeefDd1Dd2Dd3Dd4Dd5Dd6Dd7Dd9DdaDdcDddDdeC44bD5dCbbfD8eCaadDeaC66cD6cCaafD46D47D48D49D4aD4bD4cC33aD12CbcdDa0DafC78dD45D51D52D53D54C55bD62C88fD15D2bC44bD01D02D03D04D3cCabfD56D57D58D59D5aD5bD6eC99dD30D50C66cDabC9afD31D36D37D38D39C44aD63D64D7cCdddDd0DdfDe0DefDf8DfbC78eD32C66cD65C89fD16D17D18D19C44bD2fCcceDc7CaadDe9C67dD1bD1eC339Da7CbbdD90D9fC88dD97C55bDc9C88eD3aC44aDa8Da9DaaC99dDb7C55cD25CccdDc0DcfC66bDd8DdbDe8CaaeD87C44bD1aD1cCbbfD66D67D68D69D6aD6dCaadDa6Db6Dc8C67dD44C33aD3dCccdDb0DbfC45cD33C89fD22D2eC99dD96C66cD43C67bD00C55bD6fDcaCccfDc6CbbdD80D8fC77eD2dC22aD11C88dD40C78eD14C99cDf9C66bDebC67cD7dC33aD42C55bD05C67cD3fCabdD70C33aD3bC88dD5fC89eD4dD4eC89dD20C66dD1dC9afD6bC77dD10C33bD24D3eC55cD2aC9adD4fC66dD13C66cD0aC77eD35C89dD60" { 
+      run("MiToBo Runner"); 
+}
+
+macro "MiToBo Grappa Editor Action Tool -  C88cD00C99eL1020C9aeD30CaaeL4050CabeD60CbbeL7080CcceL90b0CddeLc0e0CcccDf0C89eD01C9afL1121CabfL3141CbbfD51CbcfD61CccfD71CcdfD81CddfD91CdefDa1CeefLb1c1CeeeDf1C89eD02C9afL1222CabfL3242CbbfD52CbcfD62CccfD72CcdfD82CddfD92CdefDa2CeefLb2c2CeeeDf2C89eD03C44cD13C33bD23C78eD33C89fD43C44bL5363C78dD73CcdfD83CaaeD93C66cDa3CeefDb3CbbeDc3C55bLd3e3CbbdDf3C44bD04C56dD14C9afD24C66dD34C88eD44C55cD54CabfD64C229D74CcdfD84C55bD94C33aDa4CccfDb4CaadDc4C88cDd4CbceDe4C55aDf4C33aD05C77eD15C55cD25C229D35C88eD45C22aD55C119D65C88dD75CccfD85C229D95C66cLa5b5CaadDc5C339Dd5C55aDe5CbbdDf5C66cD06C22aD16C56cD26C229D36C88eD46C56cD56C99eD66C33aD76C77dD86C66bD96C99dDa6C33aDb6C9adDc6C88cDd6CeeeDf6C89eD07C88fD17C78eD27C9afD37CaafD47C9afD57CbcfD67CaaeL7787CcdfD97CdefDa7CccfDb7CddfLc7d7CeeeDf7C89eD08C9afL1828CabfL3848CbbfD58CbcfD68CccfD78CcdfD88CddfD98CdefDa8CeefLb8c8CeeeDf8C89eD09C9afL1929CabfL3949CbbfD59CbcfD69CccfD79CbcfD89C44bD99C55bDa9C9adDb9CeefDc9C66bDd9CddfDe9CeeeDf9C89eD0aC9afL1a2aCabfL3a4aCbbfD5aCbcfD6aCccfD7aCbbfD8aC44bD9aCcdfDaaC33aDbaCcceDcaC33aDdaC66bDeaCeeeDfaC89eD0bC9afL1b2bCabfL3b4bCbbfD5bCbcfD6bCccfD7bCbbfD8bC129D9bC44aDabC99dDbbC66bDcbC77cDdbC229DebCddeDfbC89eD0cC9afL1c2cCabfL3c4cCbbfD5cCbcfD6cCccfD7cCbbfD8cC44bD9cCdefLacbcC33aDccCaadDdcC66bDecC99cDfcC89eD0dC9afL1d2dCabfL3d4dCbbfD5dCbcfD6dCccfL7d8dCbbfD9dCdefDadCddfDbdCccfDcdCeffDedCccdDfdC89eD0eC9afL1e2eCabfL3e4eCbbfD5eCbcfD6eCccfD7eCcdfD8eCddfD9eCdefDaeCeefLbeceCeeeDfeC88cD0fC99eL1f2fC9aeD3fCaaeL4f5fCabeD6fCbbeL7f8fCcceL9fbfCddeLcfefCcccDff" { 
+      run("Grappa Editor"); 
+}
+
+///////////////////////////////////
+// MiToBo PopUp Menu on right click on image
+///////////////////////////////////
+
+
+// menu shows all MiToBo plugins except the image open/save
+//var MTBPopup = newMenu("Popup Menu",
+//                 newArray(
+//                "Open Image MTB", "Save Image MTB",
+//                "-",       
+//                "Classifiy Scratch", "Fluorescent Cell Tracker2D", "Old ScratchAssay Analysis",
+//                "ScratchAssay Analysis", "ScratchAssay Evaluation", "ScratchAssay Parameter Determination", 
+//                "SVM CV Scratch Assay", "Train Scratch SVM", "Write Scratch Features",
+//                "-",
+//                "CellImageAnalyzer 2D", "Particle Detector 3D",
+//                "-",
+//                "Contour on Labeled Components",
+//                "-",
+//                "Correct Gamma3D",
+//                "-",
+//                "Correct Gamma2D", "Denoising UWT", "Histogram Equalize",
+//                "Line Offset Correction", "Subtract Background",
+//                "-",
+//                "Visualize VectorField2D",
+//                "-",
+//                "Gauss Filter", "Rank Operator",
+//                "-",
+//                "Image Convert", "Image Dimension Tools", "Image Value Tools",
+//                "-",
+//                "Dilate Image", "DilateVoronoi Image", "DistanceTransform 2D",
+//                "Erode Image", "Extract Convex Hull", "HDomeTransform 3D",
+//                "Morphology 3D", "TopHat Concave", "TopHat Convex",
+//                "-",
+//                "Neurite2D Detector", "Neurite2D Examiner", "Neurite2D Reloader",
+//                "-",
+//                "Extract Contours", "Label Components Sequential", "Label Components Sequential 3D",
+//                "Segment ChanVese2D", "Segment ChanVese3D", "Segment Multiphase2D",
+//                "-",
+//                "CalcOtsuThreshold Image", "Groundtruth Evaluation", "Harris Corner Detector2D",
+//                "LevelSet Segmentation NonPDE", "LevelSet Segmentation PDE", "Snake Segmentation",
+//                "Threshold Image", "Threshold Image Niblack",
+//                "-",
+//                "Analyze Tracks", "Another Fluorescent Cell Tracker2D", "BA2 ",
+//                "Color Convert", "Danny Test", "Find Ellipses", "FluorescentScratchAssay Analysis",
+//                "Granule Detector DWT 2D", "Granule Detector DWT 3D", "Image Scaler",
+//                "Levelset NonPDE GA", "LevselsetShape nonPDE","Link Components",
+//                "Markus Cell Detector2D", "Markus Cell Segmentation Tests", "Markus Test",
+//                "Multiple Object Tracking", "Polygon2D TestPlugin", "SVM Model Reader",
+//                "ThreeChannelScratchAssayBatch Analysis", "Unsharp Masking"
+//              )
+//               ); 
+//
+//macro "Popup Menu" {
+//
+//  cmd = getArgument();
+//  
+//  if (cmd =="About MiToBo")  {
+//    mtbAbout();
+//  } else {
+//    // run all menu entries as an command
+//    run(cmd);
+//  }
+//  
+  // old examples, methods must be implemented
+  //if (cmd !="-" && cmd =="Scale Bar")  {setScaleBarre ();}
+  //if (cmd !="-" && cmd =="Extract and Edit Image") {extractAndEditImage ();}
+  //if (cmd !="-" && cmd =="About")  {aboutTheTools ();} 
+//}
+
+
+///////////////////////////////////
+// MiToBo About Function
+///////////////////////////////////
+
+
+function mtbAbout() {
+
+  // get current time data
+  getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
+  about = "* -------------------- \"MiToBo - Microscope Image Analysis Toolbox\" --------------------\n";
+  about = about + "*\n";
+  about = about + "*\n";
+  about = about + "*  This file is part of MiToBo, the Microscope Image Analysis Toolbox.\n";
+  about = about + "*\n";
+  about = about + "*  Copyright (C) 2010 - " + year + "\n";
+  about = about + "*\n";
+  about = about + "*  This program is free software: you can redistribute it and/or modify\n";
+  about = about + "*  it under the terms of the GNU General Public License as published by\n";
+  about = about + "*  the Free Software Foundation, either version 3 of the License, or\n";
+  about = about + "*  (at your option) any later version.\n";
+  about = about + "*\n";
+  about = about + "*  This program is distributed in the hope that it will be useful,\n";
+  about = about + "*  but WITHOUT ANY WARRANTY; without even the implied warranty of\n";
+  about = about + "*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the\n";
+  about = about + "*  GNU General Public License for more details.\n";
+  about = about + "*\n";
+  about = about + "*  You should have received a copy of the GNU General Public License\n";
+  about = about + "*  along with this program.  If not, see <http://www.gnu.org/licenses/>.\n";
+  about = about + "*\n";
+  about = about + "*  Fore more information on MiToBo, visit\n";
+  about = about + "*\n";
+  about = about + "*     http://www.informatik.uni-halle.de/mitobo/\n";
+  about = about + "*\n";
+  about = about + "*\n";
+  about = about + "\n* ------------------------------------------------------------------------------\n";
+  
+  showMessage(about);
+}
