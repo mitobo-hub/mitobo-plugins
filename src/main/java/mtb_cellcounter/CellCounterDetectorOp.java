@@ -66,6 +66,30 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 	protected ParticleDetectorUWT2D particleOp;
 
 	/**
+	 * Enable/disable plastid detection.
+	 */
+	@Parameter( label = "Detect plastids?", required = true, 
+		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
+		dataIOOrder = 3, description = "Enable/disable plastid detection.")
+	protected boolean detectPlastids = true;
+
+	/**
+	 * Enable/disable stromuli detection.
+	 */
+	@Parameter( label = "Detect stromuli?", required = true, 
+		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
+		dataIOOrder = 4, description = "Enable/disable stromuli detection.")
+	protected boolean detectStromuli = false;
+
+	/**
+	 * Enable/disable stomata detection.
+	 */
+	@Parameter( label = "Detect stomata?", required = true, 
+		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
+		dataIOOrder = 5, description = "Enable/disable stomata detection.")
+	protected boolean detectStomata = false;
+
+	/**
 	 * Set of detected plastid regions.
 	 */
 	@Parameter( label = "Resulting plastid regions", 
@@ -145,6 +169,30 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 		this.particleOp = pOp;
 	}
 	
+	/**
+	 * Enable/disable plastid detection.
+	 * @param flag	If true, detection is enabled.
+	 */
+	public void setDoPlastidDetection(boolean flag) {
+		this.detectPlastids = flag;
+	}
+
+	/**
+	 * Enable/disable stromuli detection.
+	 * @param flag	If true, detection is enabled.
+	 */
+	public void setDoStromuliDetection(boolean flag) {
+		this.detectStromuli = flag;
+	}
+	
+	/**
+	 * Enable/disable stomata detection.
+	 * @param flag	If true, detection is enabled.
+	 */
+	public void setDoStomataDetection(boolean flag) {
+		this.detectStomata = flag;
+	}
+
 	/**
 	 * Get resulting plastid regions.
 	 * @return 	Set of detected plastid regions.

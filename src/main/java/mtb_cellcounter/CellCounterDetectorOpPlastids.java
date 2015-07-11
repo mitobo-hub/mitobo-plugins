@@ -63,6 +63,10 @@ public class CellCounterDetectorOpPlastids
   protected void operate() 
   		throws ALDOperatorException, ALDProcessingDAGException {
 		
+		// if plastid detection is disabled, do nothing
+		if (!this.detectPlastids)
+			return;
+		
 		// post ImageJ status
 		String msg = opIdentifier + "running plastid detection...";	
 		this.notifyListeners(new StatusEvent(msg));

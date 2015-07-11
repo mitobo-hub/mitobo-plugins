@@ -178,11 +178,14 @@ public class CellCounter extends JFrame
 	private static final String ABOUT = "About";
 	private static final String QUIT = "Quit";
 	
-	// commands associated with particle pre-segmentation
+	// commands associated with particle/stromuli/stomata pre-segmentation
 	private static final String DETECT = "Detect";
 	private static final String CONFIGURE = "Configure Operator...";
 	private static final String FILTER = "Filter Particles...";
 	private static final String SELECT = "Select markers";
+	private static final String DETECTPLASTIDS = "Plastids";
+	private static final String DETECTSTROMULI = "Stromuli";
+	private static final String DETECTSTOMATA = "Stomata";
     
 	/**
 	 * Default colors to be used for the first 8 markers.
@@ -226,6 +229,12 @@ public class CellCounter extends JFrame
 	protected JCheckBox markersCheck;
 	protected JCheckBox numbersCheck;
 	protected JCheckBox showAllCheck;
+	// checkbox to enable/disable plastid detection
+	protected JCheckBox cbDetectPlastids;
+	// checkbox to enable/disable stromuli detection
+	protected JCheckBox cbDetectStromuli;
+	// checkbox to enable/disable stomata detection
+	protected JCheckBox cbDetectStomata;
 	protected ButtonGroup radioGrp;
 	protected ButtonGroup channelGrp;
 	protected JRadioButton ch1Button;
@@ -529,6 +538,54 @@ public class CellCounter extends JFrame
 		this.separator.setPreferredSize(new Dimension(1,1));
 		gb.setConstraints(this.separator,gbc);
 		this.statButtonPanel.add(this.separator);
+
+		/*
+		 * Which objects to detect?
+		 */
+		gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.NORTHWEST;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridx=0;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		JLabel objectDetectLabel = new JLabel("Objects to detect:");
+		gb.setConstraints(objectDetectLabel, gbc);
+		this.statButtonPanel.add(objectDetectLabel);
+
+		gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.NORTHWEST;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridx=0;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		this.cbDetectPlastids = new JCheckBox(DETECTPLASTIDS);
+		this.cbDetectPlastids.setToolTipText("Enable/disable plastid detection");
+		this.cbDetectPlastids.setSelected(true);
+		this.cbDetectPlastids.addItemListener(this);
+		gb.setConstraints(this.cbDetectPlastids, gbc);
+		this.statButtonPanel.add(this.cbDetectPlastids);
+
+		gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.NORTHWEST;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridx=0;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		this.cbDetectStromuli = new JCheckBox(DETECTSTROMULI);
+		this.cbDetectStromuli.setToolTipText("Enable/disable stromuli detection");
+		this.cbDetectStromuli.setSelected(false);
+		this.cbDetectStromuli.addItemListener(this);
+		gb.setConstraints(this.cbDetectStromuli, gbc);
+		this.statButtonPanel.add(this.cbDetectStromuli);
+
+		gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.NORTHWEST;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridx=0;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		this.cbDetectStomata = new JCheckBox(DETECTSTOMATA);
+		this.cbDetectStomata.setToolTipText("Enable/disable stomata detection");
+		this.cbDetectStomata.setSelected(false);
+		this.cbDetectStomata.addItemListener(this);
+		gb.setConstraints(this.cbDetectStomata, gbc);
+		this.statButtonPanel.add(this.cbDetectStomata);
 
 		/*
 		 * Initial particle detection.
@@ -1309,6 +1366,28 @@ public class CellCounter extends JFrame
 			}
 			this.ic.repaint();			
 		}
+		// options for object detection
+		else if (e.getItem().equals(this.cbDetectPlastids)){
+			if (e.getStateChange()==ItemEvent.SELECTED){
+				this.cbDetectStromuli.setEnabled(true);
+				this.cbDetectStomata.setEnabled(true);
+			}else{
+				// disable the other two checkboxes
+				this.cbDetectStromuli.setEnabled(false);
+				this.cbDetectStomata.setEnabled(false);
+			}
+		}else if (e.getItem().equals(this.cbDetectStromuli)){
+			if (e.getStateChange()==ItemEvent.SELECTED){
+				this.cbDetectStomata.setEnabled(true);
+			}
+			else {
+				this.cbDetectStomata.setEnabled(false);
+			}
+		}	else if (e.getItem().equals(this.cbDetectStomata)){
+			if (e.getStateChange()==ItemEvent.SELECTED){
+			}else{
+			}
+		}
 	}
 
 	/* (non-Javadoc)
@@ -1834,9 +1913,15 @@ public class CellCounter extends JFrame
 		public void runWorkflow() {
 			try {
 				// configure operator
-//				((ParticleDetectorUWT2D)(this.alidaWorkflow.getOperator(
-//						this.opNodeID))).setInputImage(CellCounter.this.detectImg);
-				CellCounter.this.detectorOp.setInputImage(detectImg);
+				CellCounter.this.detectorOp.setInputImage(CellCounter.this.detectImg);
+				CellCounter.this.detectorOp.setDoPlastidDetection(
+						CellCounter.this.cbDetectPlastids.isSelected());
+				CellCounter.this.detectorOp.setDoStromuliDetection(
+						 CellCounter.this.cbDetectStromuli.isEnabled()
+					&& CellCounter.this.cbDetectStromuli.isSelected());
+				CellCounter.this.detectorOp.setDoStomataDetection(
+					   CellCounter.this.cbDetectStomata.isEnabled()
+					&& CellCounter.this.cbDetectStomata.isSelected());
 				// verify configuration once again
 				this.alidaWorkflow.nodeParameterChanged(this.opNodeID);
 				// execute the node/workflow
@@ -1895,12 +1980,13 @@ public class CellCounter extends JFrame
 				break;
 			case SHOW_RESULTS:
 				this.progressMessageWin.setVisible(false);
-//				MTBRegion2DSet particles = CellCounter.this.particleOp.getResults();
 				MTBRegion2DSet particles = 
 					CellCounter.this.detectorOp.getResultPlastidRegions();
-				CellCntrPresegmentationResult res = 
-						new CellCntrPresegmentationResult(CellCounter.this.detectImg, 
-								particles);
+				CellCntrPresegmentationResult res = null;
+				if (particles != null) {
+					res = new CellCntrPresegmentationResult(
+							CellCounter.this.detectImg,	particles);
+				}
 				MTBRegion2DSet stromuli = 
 						CellCounter.this.detectorOp.getResultStromuliRegions();
 				CellCntrPresegmentationResult resStromuli = null;
@@ -1909,37 +1995,39 @@ public class CellCounter extends JFrame
 							CellCounter.this.detectImg,	stromuli);
 				}
 				// draw detected particles
-				CellCounter.this.currentMarkerVector =
-					CellCounter.this.typeVector.get(0);
-				CellCounter.this.currentMarkerVector.setSegmentationData(res);
-				for (int i=0; i<particles.size(); ++i) {
-					MTBRegion2D reg = particles.elementAt(i);
-					CellCntrMarker marker = new CellCntrMarker();
-					marker.setX((int)reg.getCenterOfMass_X());
-					marker.setY((int)reg.getCenterOfMass_Y());
-					marker.setZ(1);
-					CellCounter.this.currentMarkerVector.add(marker);
-				}
-				if (CellCounter.this.pFilter != null) {
-					CellCounter.this.currentMarkerVector.
+				if (particles != null) {
+					CellCounter.this.currentMarkerVector =
+							CellCounter.this.typeVector.get(0);
+					CellCounter.this.currentMarkerVector.setSegmentationData(res);
+					for (int i=0; i<particles.size(); ++i) {
+						MTBRegion2D reg = particles.elementAt(i);
+						CellCntrMarker marker = new CellCntrMarker();
+						marker.setX((int)reg.getCenterOfMass_X());
+						marker.setY((int)reg.getCenterOfMass_Y());
+						marker.setZ(1);
+						CellCounter.this.currentMarkerVector.add(marker);
+					}
+					if (CellCounter.this.pFilter != null) {
+						CellCounter.this.currentMarkerVector.
 						getSegmentationData().filterRegions(
 								CellCounter.this.pFilter.getMinSizeValue(),
 								CellCounter.this.pFilter.getMaxSizeValue(),
 								CellCounter.this.pFilter.getMinIntensityValue(),
 								CellCounter.this.pFilter.getMaxIntensityValue());
-					CellCounter.this.pFilter.updateSegmentationData(
-						CellCounter.this.currentMarkerVector.getSegmentationData(),
-						CellCounter.this.detectImg);
+						CellCounter.this.pFilter.updateSegmentationData(
+								CellCounter.this.currentMarkerVector.getSegmentationData(),
+								CellCounter.this.detectImg);
+					}
+					try {
+						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
+								Color.class, CellCounter.this.dynColorChooserVector.get(0));
+						CellCounter.this.currentMarkerVector.setColor(cc);
+					} catch (ALDDataIOException e) {
+						IJ.error("Setting color failed!");
+					}
+					CellCounter.this.ic.setCurrentMarkerVector(
+							CellCounter.this.currentMarkerVector);
 				}
-				try {
-					Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
-							Color.class, CellCounter.this.dynColorChooserVector.get(0));
-					CellCounter.this.currentMarkerVector.setColor(cc);
-				} catch (ALDDataIOException e) {
-					IJ.error("Setting color failed!");
-				}
-				CellCounter.this.ic.setCurrentMarkerVector(
-						CellCounter.this.currentMarkerVector);
 				
 				// draw detected stromulis
 				if (stromuli != null) {
