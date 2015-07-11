@@ -157,7 +157,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType
  */
 public class CellCounter extends JFrame 
 	implements ActionListener, ItemListener, DocumentListener, 
-		StatusReporter, ALDSwingValueChangeListener {
+		StatusReporter, StatusListener, ALDSwingValueChangeListener {
 	
 	/*
 	 * Global command definitions.
@@ -368,6 +368,7 @@ public class CellCounter extends JFrame
 	    }
 	    this.detectorOp = detectorContainer;
 	    this.detectorOp.setParticleDetector(this.particleOp);
+	    this.detectorOp.addStatusListener(this);
 	    this.opProxy = new OperatorExecutionProxy(this.detectorOp);
 	    this.opProxy.nodeParameterChanged();
     } catch (ALDOperatorException e) {
@@ -2183,7 +2184,7 @@ public class CellCounter extends JFrame
 	@Override
   public void addStatusListener(StatusListener statListener) {
 		this.m_statusListeners.add(statListener);	
-		this.particleOp.addStatusListener(statListener);
+//		this.particleOp.addStatusListener(statListener);
   }
 
 	@Override
@@ -2191,13 +2192,18 @@ public class CellCounter extends JFrame
 		for (int i = 0; i < this.m_statusListeners.size(); i++) {
 			this.m_statusListeners.get(i).statusUpdated(e);
 		}
-		this.particleOp.notifyListeners(e);
+//		this.particleOp.notifyListeners(e);
   }
 
 	@Override
   public void removeStatusListener(StatusListener statListener) {
 		this.m_statusListeners.remove(statListener);
-		this.particleOp.removeStatusListener(statListener);
+//		this.particleOp.removeStatusListener(statListener);
+  }
+
+	@Override
+  public void statusUpdated(StatusEvent e) {
+		this.notifyListeners(e);
   }
 
 }

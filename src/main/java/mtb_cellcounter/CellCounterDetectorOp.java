@@ -48,7 +48,7 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author Birgit Moeller
  */
 public abstract class CellCounterDetectorOp extends MTBOperator
-	implements StatusReporter {
+	implements StatusListener, StatusReporter {
 	
 	/**
 	 * Input image to process.
@@ -143,25 +143,6 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 		this.m_statusListeners = new Vector<StatusListener>(1);
 	}
 
-	// ----- StatusReporter interface
-	
-	@Override
-	public void addStatusListener(StatusListener statuslistener) {	
-		this.m_statusListeners.add(statuslistener);	
-	}
-
-	@Override
-	public void notifyListeners(StatusEvent e) {
-		for (int i = 0; i < this.m_statusListeners.size(); i++) {
-			this.m_statusListeners.get(i).statusUpdated(e);
-		}
-	}
-
-	@Override
-	public void removeStatusListener(StatusListener statuslistener) {
-		this.m_statusListeners.remove(statuslistener);
-	}	
-	
 	/**
 	 * Set input image.
 	 * @param img	Input image to process.
@@ -226,4 +207,25 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 		return this.resultStromuliRegions;
 	}
 
+	@Override
+  public void addStatusListener(StatusListener statListener) {
+		this.m_statusListeners.add(statListener);	
+  }
+
+	@Override
+  public void notifyListeners(StatusEvent e) {
+		for (int i = 0; i < this.m_statusListeners.size(); i++) {
+			this.m_statusListeners.get(i).statusUpdated(e);
+		}
+  }
+
+	@Override
+  public void removeStatusListener(StatusListener statListener) {
+		this.m_statusListeners.remove(statListener);
+  }
+	
+	@Override
+  public void statusUpdated(StatusEvent e) {
+		this.notifyListeners(e);
+  }
 }
