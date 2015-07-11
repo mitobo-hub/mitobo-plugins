@@ -1240,11 +1240,20 @@ public class CellCounter extends JFrame
 				IJ.error("You need to initialize first");
 				return;
 			}
-			// warning that markers of type 1 will be lost!
+			// warning that markers of types 1, 2 and 3 will be lost!
 			if (this.typeVector.elementAt(0).size() > 0) {
+				String typeInfo = "1";
+				if (   this.cbDetectStomata.isEnabled() 
+						&& this.cbDetectStomata.isSelected() 
+						&& this.typeVector.elementAt(this.stomataMarkerIndex).size() > 0)
+					typeInfo += ", " + this.stomataMarkerIndex;
+				if (   this.cbDetectStromuli.isEnabled() 
+						&& this.cbDetectStromuli.isSelected() 
+						&& this.typeVector.elementAt(this.stromuliMarkerIndex).size() > 0)
+					typeInfo += ", " + this.stromuliMarkerIndex;
 				Object[] options = {"Continue", "Cancel"};
 				int n = JOptionPane.showOptionDialog(null,
-						"Attention, your markers of type 1 will be lost!",
+						"Attention, your markers of type(s) " + typeInfo + " will be lost!",
 						"Warning: Markers will be lost",
 						JOptionPane.YES_NO_OPTION,
 						JOptionPane.WARNING_MESSAGE,
@@ -1258,6 +1267,18 @@ public class CellCounter extends JFrame
 			this.ic.setEditable(false);
 			// delete markers in GUI
 			this.typeVector.setElementAt(new CellCntrMarkerVector(1), 0);
+			int id = 1;
+			// stomata are to be detected, reset another marker type
+			if (   this.cbDetectStomata.isEnabled() 
+					&& this.cbDetectStomata.isSelected()) {
+				this.typeVector.setElementAt(new CellCntrMarkerVector(2), id);
+				++id;
+			}
+			// stromuli are to be detected, reset another marker type
+			if (   this.cbDetectStromuli.isEnabled() 
+					&& this.cbDetectStromuli.isSelected()) {
+				this.typeVector.setElementAt(new CellCntrMarkerVector(3), id);
+			}
 			if (this.ic!=null)
 				this.ic.repaint();	
 			populateTxtFields();
@@ -1833,8 +1854,8 @@ public class CellCounter extends JFrame
 			try {
 				this.opNodeID = this.alidaWorkflow.createNode(op);
 				this.valueChangeListener = new ValueChangeListener(this.opNodeID);
-//				CellCounter.this.particleConfButton.addValueChangeEventListener(
-//						this.valueChangeListener);
+				CellCounter.this.particleConfigureFrame.addValueChangeEventListener(
+						this.valueChangeListener);
 			} catch (ALDWorkflowException ex) {
 				JOptionPane.showMessageDialog(null, "Instantiation of operator \""
 						+ op.getName() + "\" failed!\n", 

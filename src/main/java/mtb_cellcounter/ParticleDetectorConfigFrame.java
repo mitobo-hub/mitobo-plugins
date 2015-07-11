@@ -51,7 +51,7 @@ import de.unihalle.informatik.MiToBo.core.helpers.MTBIcon;
  * 
  * @author Birgit Moeller
  */
-public class ParticleDetectorConfigFrame extends JFrame 
+public class ParticleDetectorConfigFrame extends ALDSwingComponent 
 	implements ActionListener, ALDSwingValueChangeListener {
 
 	/**
@@ -74,6 +74,11 @@ public class ParticleDetectorConfigFrame extends JFrame
 	 * The operator associated with this frame.
 	 */
 	protected ParticleDetectorUWT2D op = null;
+
+	/**
+	 * The top level frame.
+	 */
+	protected JFrame mainFrame;
 
 	/**
 	 * The top level panel of this frame.
@@ -131,6 +136,7 @@ public class ParticleDetectorConfigFrame extends JFrame
 	protected void setupWindow() {
 
 		// set up the main panel containing input panel and status bar
+		this.mainFrame = new JFrame();
 		this.mainPanel = new JPanel();
 		this.mainPanel.setLayout(new BorderLayout());
 		
@@ -151,7 +157,7 @@ public class ParticleDetectorConfigFrame extends JFrame
 		this.mainPanel.add(this.addCloseButtonPanel(), BorderLayout.SOUTH);
 		
 		// add pane to this window
-		this.add(this.mainPanel);
+		this.mainFrame.add(this.mainPanel);
 		
 		// add a nice menubar
 		JMenuBar mainWindowMenu = new JMenuBar();
@@ -172,9 +178,9 @@ public class ParticleDetectorConfigFrame extends JFrame
 		mainWindowMenu.add(helpM);
 
 		// and go ..
-		this.setTitle(titleString);
-		this.setJMenuBar(mainWindowMenu);
-		this.setSize(new Dimension(windowWidth, windowHeight));
+		this.mainFrame.setTitle(titleString);
+		this.mainFrame.setJMenuBar(mainWindowMenu);
+		this.mainFrame.setSize(new Dimension(windowWidth, windowHeight));
 
 	}
 
@@ -301,7 +307,7 @@ public class ParticleDetectorConfigFrame extends JFrame
 		JMenu helpM = new JMenu("Help");
 		JMenuItem itemHelp = new JMenuItem("Online Help");
 		itemHelp.addActionListener(OnlineHelpDisplayer.getHelpActionListener(
-				itemHelp, "welcome", this));
+				itemHelp, "welcome", this.mainFrame));
 		JMenuItem itemAbout = new JMenuItem("About MiToBo");
 		itemAbout.setActionCommand("helpM_about");
 		itemAbout.addActionListener(this);
@@ -389,7 +395,7 @@ public class ParticleDetectorConfigFrame extends JFrame
 					ALDOperator loadedOp = (ALDOperator)ALDDataIOManagerXmlbeans.readXml(
 						file.getAbsolutePath(), ALDOperator.class);
 					if (!(loadedOp instanceof ParticleDetectorUWT2D)) {
-						JOptionPane.showMessageDialog(this.getFocusOwner(), 
+						JOptionPane.showMessageDialog(this.mainFrame.getFocusOwner(), 
 							"This is not a configuration file for the particle detector!");
 					}
 					else {
@@ -448,5 +454,37 @@ public class ParticleDetectorConfigFrame extends JFrame
 	      e.printStackTrace();
       }
 		}
+		// pass event to listeners
+		this.fireALDSwingValueChangeEvent(event);
 	}
+
+	/**
+	 * Set visibility of configuration window.
+	 * @param flag	If true, frame will be visible.
+	 */
+	public void setVisible(boolean flag) {
+		this.mainFrame.setVisible(flag);
+	}
+	
+	@Override
+  public JComponent getJComponent() {
+		// Attention! This is a hack! Hopefully this method is never called in 
+		// the context of the cell counter...
+	  return null;
+  }
+
+	@Override
+  public void disableComponent() {
+		this.mainFrame.setEnabled(false);
+  }
+
+	@Override
+  public void enableComponent() {
+		this.mainFrame.setEnabled(true);
+  }
+
+	@Override
+  public void dispose() {
+		this.mainFrame.dispose();
+  }
 }
