@@ -33,6 +33,7 @@ import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBQuadraticCurve2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
@@ -106,11 +107,19 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 	protected transient int resultPlastidCount = 0;
 	
 	/**
+	 * Set of detected stomata regions.
+	 */
+	@Parameter( label = "Resulting stomata regions", 
+		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD, 
+		dataIOOrder = 3, description = "Detected stomata regions.")
+	protected transient Vector<MTBQuadraticCurve2D> resultStomataRegions = null;
+
+	/**
 	 * Set of detected stromuli regions.
 	 */
 	@Parameter( label = "Resulting stromuli regions", 
 		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD, 
-		dataIOOrder = 3, description = "Detected plastid regions.")
+		dataIOOrder = 4, description = "Detected plastid regions.")
 	protected transient MTBRegion2DSet resultStromuliRegions = null;
 
 	/**
@@ -201,6 +210,14 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 		return this.resultPlastidRegions;
 	}
 	
+	/**
+	 * Get resulting stomata regions.
+	 * @return 	Set of detected stomata regions.
+	 */
+	public Vector<MTBQuadraticCurve2D> getResultStomataRegions() {
+		return this.resultStomataRegions;
+	}
+
 	/**
 	 * Get resulting stromuli regions.
 	 * @return 	Set of detected stromuli regions.

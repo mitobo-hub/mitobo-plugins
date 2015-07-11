@@ -143,6 +143,7 @@ import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEvent.ALDWorkflo
 import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
 import de.unihalle.informatik.MiToBo.core.dataio.provider.swing.AwtColorDataIOSwing.ColorChooserPanel;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBQuadraticCurve2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
@@ -219,6 +220,10 @@ public class CellCounter extends JFrame
 	private CellCntrMarkerVector markerVector;
 	protected CellCntrMarkerVector currentMarkerVector;
 
+	protected int plastidMarkerIndex = -1;
+	protected int stromuliMarkerIndex = -1;
+	protected int stomataMarkerIndex = -1;
+	
 	protected JPanel dynPanel;
 	protected JPanel dynButtonPanel;
 	protected JPanel statButtonPanel;
@@ -1274,9 +1279,13 @@ public class CellCounter extends JFrame
 						null, options, options[0]);
 				return;				
 			}				
-			if (this.pFilter == null)
+			if (this.pFilter == null) {
+				CellCntrMarkerVector pVec = CellCounter.this.typeVector.get(
+						CellCounter.this.plastidMarkerIndex);
 				this.pFilter = new ParticleFilterFrame(this, 
-					this.currentMarkerVector.getSegmentationData(),this.detectImg);
+					(CellCntrSegResultRegions)pVec.getSegmentationData(),
+						this.detectImg);
+			}
 //			else {
 //				this.pFilter.setRegions(this.currentMarkerVector.getDetectedRegions());
 //				this.pFilter.setup(this.currentMarkerVector.getDetectedRegions());
@@ -1287,7 +1296,7 @@ public class CellCounter extends JFrame
 //		else if (command.compareTo(UPDATE) == 0) {
 //			this.filterRegions();
 //		}
-		// fix selected markers
+		// fix selected markers, i.e. remove filtered regions
 		else if (command.compareTo(SELECT) == 0) {
 			this.detectMode = false;
 			this.ic.setEditable(true);
@@ -1303,17 +1312,19 @@ public class CellCounter extends JFrame
 			MTBRegion2DSet regs = new MTBRegion2DSet();
 			MTBBorder2DSet borders = new MTBBorder2DSet();
 			Vector<Double> avgIntensities = new Vector<Double>();
+			CellCntrSegResultRegions oldSeg = 
+					(CellCntrSegResultRegions)oldVec.getSegmentationData();
 			for (int i=0; i<oldVec.size(); ++i) {
-				if (oldVec.getSegmentationData().getActivityArray().elementAt(i).
-							booleanValue()) {
+				if (oldSeg.getActivityArray().elementAt(i).booleanValue()) {
 					newVec.add(oldVec.elementAt(i));
-					regs.add(oldVec.getSegmentationData().getRegions().elementAt(i));
-					borders.add(oldVec.getSegmentationData().getBorders().elementAt(i));
-					avgIntensities.add(oldVec.getSegmentationData().getAverageIntensities().elementAt(i));
+					regs.add(oldSeg.getRegions().elementAt(i));
+					borders.add(oldSeg.getBorders().elementAt(i));
+					avgIntensities.add(oldSeg.getAverageIntensities().elementAt(i));
 				}
 			}
-			CellCntrPresegmentationResult newRes = new CellCntrPresegmentationResult(
-				this.detectImg, regs, borders, avgIntensities);
+			CellCntrSegResultRegions newRes = 
+					new CellCntrSegResultRegions(
+							this.detectImg, regs, borders, avgIntensities);
 			newVec.setSegmentationData(newRes);
 			this.typeVector.setElementAt(newVec, 0);
 			this.dynRadioVector.elementAt(0).setSelected(true);
@@ -1375,17 +1386,6 @@ public class CellCounter extends JFrame
 				// disable the other two checkboxes
 				this.cbDetectStromuli.setEnabled(false);
 				this.cbDetectStomata.setEnabled(false);
-			}
-		}else if (e.getItem().equals(this.cbDetectStromuli)){
-			if (e.getStateChange()==ItemEvent.SELECTED){
-				this.cbDetectStomata.setEnabled(true);
-			}
-			else {
-				this.cbDetectStomata.setEnabled(false);
-			}
-		}	else if (e.getItem().equals(this.cbDetectStomata)){
-			if (e.getStateChange()==ItemEvent.SELECTED){
-			}else{
 			}
 		}
 	}
@@ -1982,22 +1982,33 @@ public class CellCounter extends JFrame
 				this.progressMessageWin.setVisible(false);
 				MTBRegion2DSet particles = 
 					CellCounter.this.detectorOp.getResultPlastidRegions();
-				CellCntrPresegmentationResult res = null;
+				CellCntrSegResult res = null;
 				if (particles != null) {
-					res = new CellCntrPresegmentationResult(
+					res = new CellCntrSegResultRegions(
 							CellCounter.this.detectImg,	particles);
 				}
 				MTBRegion2DSet stromuli = 
 						CellCounter.this.detectorOp.getResultStromuliRegions();
-				CellCntrPresegmentationResult resStromuli = null;
+				CellCntrSegResult resStromuli = null;
 				if (stromuli != null) {
-					resStromuli = new CellCntrPresegmentationResult(
+					resStromuli = new CellCntrSegResultRegions(
 							CellCounter.this.detectImg,	stromuli);
 				}
+				Vector<MTBQuadraticCurve2D> stomata = 
+						CellCounter.this.detectorOp.getResultStomataRegions();
+				CellCntrSegResult resStomata = null;
+				if (stomata != null) {
+					resStomata = new CellCntrSegResultCurves(
+							CellCounter.this.detectImg,	stomata);
+				}
+
+				int markerIndex = 0;
+				
 				// draw detected particles
 				if (particles != null) {
+					CellCounter.this.plastidMarkerIndex = markerIndex;
 					CellCounter.this.currentMarkerVector =
-							CellCounter.this.typeVector.get(0);
+							CellCounter.this.typeVector.get(markerIndex);
 					CellCounter.this.currentMarkerVector.setSegmentationData(res);
 					for (int i=0; i<particles.size(); ++i) {
 						MTBRegion2D reg = particles.elementAt(i);
@@ -2008,19 +2019,22 @@ public class CellCounter extends JFrame
 						CellCounter.this.currentMarkerVector.add(marker);
 					}
 					if (CellCounter.this.pFilter != null) {
-						CellCounter.this.currentMarkerVector.
-						getSegmentationData().filterRegions(
+						// note: cast to correct segmentation data type necessary
+						((CellCntrSegResultRegions)CellCounter.this.
+								currentMarkerVector.getSegmentationData()).filterRegions(
 								CellCounter.this.pFilter.getMinSizeValue(),
 								CellCounter.this.pFilter.getMaxSizeValue(),
 								CellCounter.this.pFilter.getMinIntensityValue(),
 								CellCounter.this.pFilter.getMaxIntensityValue());
 						CellCounter.this.pFilter.updateSegmentationData(
-								CellCounter.this.currentMarkerVector.getSegmentationData(),
+								(CellCntrSegResultRegions)CellCounter.this.
+									currentMarkerVector.getSegmentationData(),
 								CellCounter.this.detectImg);
 					}
 					try {
 						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
-								Color.class, CellCounter.this.dynColorChooserVector.get(0));
+								Color.class, 
+								CellCounter.this.dynColorChooserVector.get(markerIndex));
 						CellCounter.this.currentMarkerVector.setColor(cc);
 					} catch (ALDDataIOException e) {
 						IJ.error("Setting color failed!");
@@ -2029,10 +2043,40 @@ public class CellCounter extends JFrame
 							CellCounter.this.currentMarkerVector);
 				}
 				
+				// draw detected stomata
+				if (stomata != null) {
+					++markerIndex;
+					CellCounter.this.stomataMarkerIndex = markerIndex;
+					CellCounter.this.currentMarkerVector =
+							CellCounter.this.typeVector.get(markerIndex);
+					CellCounter.this.currentMarkerVector.setSegmentationData(
+							resStomata);
+					for (int i=0; i<stomata.size(); ++i) {
+						MTBQuadraticCurve2D reg = stomata.elementAt(i);
+						CellCntrMarker marker = new CellCntrMarker();
+						marker.setX((int)reg.getCenterX());
+						marker.setY((int)reg.getCenterY());
+						marker.setZ(1);
+						CellCounter.this.currentMarkerVector.add(marker);
+					}
+					try {
+						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(
+								null,	Color.class, 
+								CellCounter.this.dynColorChooserVector.get(markerIndex));
+						CellCounter.this.currentMarkerVector.setColor(cc);
+					} catch (ALDDataIOException e) {
+						IJ.error("Setting color failed!");
+					}
+					CellCounter.this.ic.setCurrentMarkerVector(
+							CellCounter.this.currentMarkerVector);
+				}
+
 				// draw detected stromulis
 				if (stromuli != null) {
+					++markerIndex;
+					CellCounter.this.stromuliMarkerIndex = markerIndex;
 					CellCounter.this.currentMarkerVector =
-							CellCounter.this.typeVector.get(1);
+							CellCounter.this.typeVector.get(markerIndex);
 					CellCounter.this.currentMarkerVector.setSegmentationData(
 							resStromuli);
 					for (int i=0; i<stromuli.size(); ++i) {
@@ -2044,8 +2088,9 @@ public class CellCounter extends JFrame
 						CellCounter.this.currentMarkerVector.add(marker);
 					}
 					try {
-						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
-								Color.class, CellCounter.this.dynColorChooserVector.get(1));
+						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(
+								null,	Color.class, 
+								CellCounter.this.dynColorChooserVector.get(markerIndex));
 						CellCounter.this.currentMarkerVector.setColor(cc);
 					} catch (ALDDataIOException e) {
 						IJ.error("Setting color failed!");

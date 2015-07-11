@@ -84,7 +84,7 @@ public class CellCntrMarkerVector extends Vector<CellCntrMarker> {
    * available. Usually only for a subset of the first n markers regions are
    * at best available.
    */
-  private CellCntrPresegmentationResult segmentationData = null;
+  private CellCntrSegResult segmentationData = null;
 
 	/** 
 	 * Creates a new instance of MarkerVector.
@@ -130,7 +130,7 @@ public class CellCntrMarkerVector extends Vector<CellCntrMarker> {
 		remove(n);
 		// if segmentation data is given for the marker remove it, too 
 		if (   this.segmentationData != null 
-				&& n < this.segmentationData.getRegionCount())
+				&& n < this.segmentationData.getBorderCount())
 			this.segmentationData.removeItem(n);
 	}
 	
@@ -145,7 +145,7 @@ public class CellCntrMarkerVector extends Vector<CellCntrMarker> {
 			super.removeElementAt(size()-1);
 		// if there is segmentation data available for the marker remove it, too 
 		if (   this.segmentationData != null 
-				&& originalSize <= this.segmentationData.getRegionCount())
+				&& originalSize <= this.segmentationData.getBorderCount())
 			this.segmentationData.removeLastItem();
 	}
 
@@ -223,7 +223,7 @@ public class CellCntrMarkerVector extends Vector<CellCntrMarker> {
    * Get the current (pre-)segmentation data.
    * @return	Segmentation data, might be null.
    */
-  public CellCntrPresegmentationResult getSegmentationData() {
+  public CellCntrSegResult getSegmentationData() {
   	return this.segmentationData;
   }
   
@@ -231,7 +231,7 @@ public class CellCntrMarkerVector extends Vector<CellCntrMarker> {
    * Set (pre-)segmentation data.
    * @param p		Segmentation data to attach to this marker set.
    */
-  public void setSegmentationData(CellCntrPresegmentationResult p) {
+  public void setSegmentationData(CellCntrSegResult p) {
   	this.segmentationData = p;
   }
   

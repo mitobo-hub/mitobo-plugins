@@ -557,7 +557,7 @@ public class CellCntrImageCanvas extends ImageCanvas
 			Color defColor = mv.getColor();
 			ListIterator mit = mv.listIterator();
 			
-			CellCntrPresegmentationResult regs = mv.getSegmentationData();
+			CellCntrSegResult regs = mv.getSegmentationData();
 			
 			Vector<Boolean> mask = null;
 			if (regs != null)
