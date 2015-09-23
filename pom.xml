@@ -4,13 +4,22 @@
 
   <groupId>de.unihalle.informatik.MiToBo</groupId>
   <artifactId>mitobo-plugins</artifactId>
-  <version>1.6.1-SNAPSHOT</version>
+  <version>1.7</version>
   <packaging>jar</packaging>
 
   <name>mitobo-plugins</name>
   <description>ImageJ plugins for MiToBo - A Microscope Image Analysis TOolBox</description> 
   <url>http://www.informatik.uni-halle.de/mitobo</url>
   <inceptionYear>2010</inceptionYear>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <YEAR>2015</YEAR>
+    <!-- define a default native directory, does not work in all cases,
+	 but avoids that Maven fails completely -->
+    <native.libdir>lib64</native.libdir>
+    <mitobo.version>1.7</mitobo.version>
+  </properties>
 
   <licenses>
     <license>
@@ -78,15 +87,6 @@
       <timezone>+1</timezone>
     </developer>
   </developers>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <YEAR>2015</YEAR>
-    <!-- define a default native directory, does not work in all cases,
-	 but avoids that Maven fails completely -->
-    <native.libdir>lib64</native.libdir>
-    <mitobo.version>1.6.1-SNAPSHOT</mitobo.version>
-  </properties>
 
   <build>
     <plugins>
@@ -191,7 +191,7 @@
 		<artifactItem>
 		  <groupId>de.unihalle.informatik.MiToBo.native</groupId>
 		  <artifactId>mitobo-native-${native.libdir}</artifactId>
-		  <version>1.0</version>
+		  <version>1.2</version>
 		  <type>jar</type>
 		  <overWrite>true</overWrite>
 		  <outputDirectory>target/natives/${native.libdir}</outputDirectory>
@@ -393,14 +393,6 @@
       <artifactId>mitobo</artifactId>
       <version>${mitobo.version}</version>
     </dependency>
-<!--
-    <dependency>
-      <groupId>net.imagej</groupId>
-      <artifactId>ij</artifactId>
-      <version>1.49u</version>
-      <scope>compile</scope>
-    </dependency>
--->
   </dependencies>
 
   <scm>
