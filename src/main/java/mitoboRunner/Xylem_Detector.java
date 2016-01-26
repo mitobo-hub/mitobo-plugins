@@ -38,6 +38,8 @@ import ij.plugin.*;
 import de.unihalle.informatik.Alida.annotations.indexing.SezPozAdapter;
 import de.unihalle.informatik.Alida.gui.ALDOperatorGUIExecutionProxy;
 import de.unihalle.informatik.Alida.operator.ALDOperatorLocation;
+import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
+import de.unihalle.informatik.MiToBo.core.operator.MTBVersionProviderReleaseFile;
 
 /**
  * ImageJ plugin to directly start the xylem detector.
@@ -50,6 +52,12 @@ public class Xylem_Detector implements PlugIn {
 	public void run(String arg0) {
 		// init the SezPoz adapter properly
 		SezPozAdapter.initAdapter(IJ.getClassLoader());
+		// configure version management
+		ALDVersionProviderFactory.setProviderClass("de.unihalle.informatik." 
+				+	"MiToBo.core.operator.MTBVersionProviderReleaseFile");
+		MTBVersionProviderReleaseFile.setRevisionFile(
+				"revision-mitobo-plugins.txt");
+
 		// open the control frame
 		final String className = "de.unihalle.informatik.MiToBo.apps.xylem.XylemDetector";
 		ALDOperatorLocation opLoc = ALDOperatorLocation.createClassLocation(className);

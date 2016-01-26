@@ -38,6 +38,8 @@ import de.unihalle.informatik.Alida.annotations.indexing.SezPozAdapter;
 import de.unihalle.informatik.Alida.gui.ALDOperatorGUIExecutionProxy;
 import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
 import de.unihalle.informatik.Alida.operator.ALDOperatorLocation;
+import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
+import de.unihalle.informatik.MiToBo.core.operator.MTBVersionProviderReleaseFile;
 
 /**
  * ImageJ plugin to directly start the scratch assay analyzer.
@@ -54,6 +56,12 @@ public class ScratchAssayAnalyzer_ implements PlugIn {
 
 		// configure online help to use MiToBo help set
 		OnlineHelpDisplayer.initHelpset("mitobo");
+
+		// configure version management
+		ALDVersionProviderFactory.setProviderClass("de.unihalle.informatik." 
+				+	"MiToBo.core.operator.MTBVersionProviderReleaseFile");
+		MTBVersionProviderReleaseFile.setRevisionFile(
+				"revision-mitobo-plugins.txt");
 
 		// open the control frame
 		final String className = 

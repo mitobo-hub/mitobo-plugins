@@ -11,7 +11,9 @@ import de.unihalle.informatik.Alida.annotations.indexing.SezPozAdapter;
 import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
 import de.unihalle.informatik.Alida.helpers.ALDClassInfo;
 import de.unihalle.informatik.Alida.operator.ALDOperatorLocation;
+import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
 import de.unihalle.informatik.MiToBo.core.grappa.MTBGrappaFrame;
+import de.unihalle.informatik.MiToBo.core.operator.MTBVersionProviderReleaseFile;
 
 /**
  * ImageJ plugin for running the Alida/MiToBo graphical editor "Grappa".
@@ -28,6 +30,12 @@ public class Grappa_Editor implements PlugIn {
 
 		// configure online help to use MiToBo help set
 		OnlineHelpDisplayer.initHelpset("mitobo");
+
+		// configure version management
+		ALDVersionProviderFactory.setProviderClass("de.unihalle.informatik." 
+				+	"MiToBo.core.operator.MTBVersionProviderReleaseFile");
+		MTBVersionProviderReleaseFile.setRevisionFile(
+				"revision-mitobo-plugins.txt");
 
 		// search for available operators
 		Collection<ALDOperatorLocation> standardOps = 
