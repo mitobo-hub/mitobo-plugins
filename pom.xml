@@ -4,7 +4,7 @@
 
   <groupId>de.unihalle.informatik.MiToBo</groupId>
   <artifactId>mitobo-plugins</artifactId>
-  <version>1.8</version>
+  <version>1.8.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>mitobo-plugins</name>
@@ -18,7 +18,7 @@
     <!-- define a default native directory, does not work in all cases,
 	 but avoids that Maven fails completely -->
     <native.libdir>lib64</native.libdir>
-    <mitobo.version>1.8</mitobo.version>
+    <mitobo.version>1.8.1-SNAPSHOT</mitobo.version>
   </properties>
 
   <licenses>
