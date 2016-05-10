@@ -382,6 +382,19 @@
     </repository>
   </repositories>
 
+  <distributionManagement>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <name>Archiva Public Snapshot Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
+    </snapshotRepository>
+    <repository>
+      <id>releases</id>
+      <name>Archiva Release Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
+    </repository>
+  </distributionManagement>
+
   <dependencies>
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo</groupId>
@@ -396,24 +409,6 @@
   </scm>
 
   <profiles>
-    <profile>
-      <id>deploy-all</id>
-      <activation>
-	<activeByDefault>true</activeByDefault>
-      </activation>
-      <distributionManagement>
-	<snapshotRepository>
-	  <id>snapshots</id>
-	  <name>Archiva Public Snapshot Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
-	</snapshotRepository>
-	<repository>
-	  <id>releases</id>
-	  <name>Archiva Release Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
-	</repository>
-      </distributionManagement>
-    </profile>
     <!-- architecture dependent settings -->
     <profile>
       <id>linux-x86</id>
