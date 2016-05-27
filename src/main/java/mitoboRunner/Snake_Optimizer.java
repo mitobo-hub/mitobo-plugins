@@ -21,23 +21,17 @@
  *    http://www.informatik.uni-halle.de/mitobo/
  *
  */
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
 
 package mitoboRunner;
 
 import ij.IJ;
 import ij.plugin.*;
 import de.unihalle.informatik.Alida.annotations.indexing.SezPozAdapter;
-import de.unihalle.informatik.Alida.gui.ALDOperatorGUIExecutionProxy;
 import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
 import de.unihalle.informatik.Alida.operator.ALDOperatorLocation;
+import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
+import de.unihalle.informatik.MiToBo.core.gui.MTBOperatorGUIExecutionProxy;
+import de.unihalle.informatik.MiToBo.core.operator.MTBVersionProviderReleaseFile;
 
 /**
  * ImageJ plugin to directly start the snake optimizer operator.
@@ -55,13 +49,20 @@ public class Snake_Optimizer implements PlugIn {
 		// configure online help to use MiToBo help set
 		OnlineHelpDisplayer.initHelpset("mitobo");
 
+		// configure version management
+		ALDVersionProviderFactory.setProviderClass("de.unihalle.informatik." 
+				+	"MiToBo.core.operator.MTBVersionProviderReleaseFile");
+		MTBVersionProviderReleaseFile.setRevisionFile(
+				"revision-mitobo-plugins.txt");
+
 		// open the control frame
 		final String name = 
 			"de.unihalle.informatik.MiToBo.segmentation.snakes.optimize." + 
 				"SnakeOptimizerSingleVarCalc";
-		ALDOperatorLocation opLoc = ALDOperatorLocation.createClassLocation(name);
-		ALDOperatorGUIExecutionProxy execManager = 
-																			new ALDOperatorGUIExecutionProxy(opLoc);
+		ALDOperatorLocation opLoc = 
+				ALDOperatorLocation.createClassLocation(name);
+		MTBOperatorGUIExecutionProxy execManager = 
+				new MTBOperatorGUIExecutionProxy(opLoc);
 		execManager.showGUI();
 	}
 }

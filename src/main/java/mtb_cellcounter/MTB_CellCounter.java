@@ -94,15 +94,14 @@ public class MTB_CellCounter extends PlugInFrame implements StatusListener {
 		// init the SezPoz adapter properly
 		SezPozAdapter.initAdapter(IJ.getClassLoader());
 		// init version provider, but maybe overwritten by environment
-		ALDVersionProviderFactory.setProviderClass("de.unihalle.informatik." + 
-			"MiToBo.core.operator.MTBVersionProviderReleaseFile");
+		ALDVersionProviderFactory.setProviderClass("de.unihalle.informatik." 
+				+	"MiToBo.core.operator.MTBVersionProviderReleaseFile");
 		// specify revision file name, if revision file provider is in use
-		ALDVersionProvider prov = ALDVersionProviderFactory.getProviderInstance();
+		ALDVersionProvider prov = 
+				ALDVersionProviderFactory.getProviderInstance();
 		if (prov instanceof MTBVersionProviderReleaseFile) {
-			MTBVersionProviderReleaseFile provider = 
-					(MTBVersionProviderReleaseFile)
-					ALDVersionProviderFactory.getProviderInstance();
-			provider.setRevisionFile("revision-mitobo-plugins.txt");
+			MTBVersionProviderReleaseFile.setRevisionFile(
+					"revision-mitobo-plugins.txt");
 		}
 		// run the cell counter
 		this.cellCounter = new CellCounter();
