@@ -32,7 +32,7 @@ import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
-import de.unihalle.informatik.MiToBo.apps.plastids.PlastidDetector2D;
+import de.unihalle.informatik.MiToBo.apps.plantCells.plastids.PlastidDetector2D;
 
 /**
  * Cell counter detector for detecting plastids.
