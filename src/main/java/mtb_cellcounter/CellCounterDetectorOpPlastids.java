@@ -89,14 +89,6 @@ public class CellCounterDetectorOpPlastids
 	  	new ParticleDetectorConfigFrame(this.particleOp);
 	}
 
-	/**
-	 * Set particle detector operator object.
-	 * @param pOp	Detector object.
-	 */
-	public void setParticleDetector(ParticleDetectorUWT2D pOp) {
-		this.particleOp = pOp;
-	}
-	
 	@Override
   protected void operate() 
   		throws ALDOperatorException, ALDProcessingDAGException {
