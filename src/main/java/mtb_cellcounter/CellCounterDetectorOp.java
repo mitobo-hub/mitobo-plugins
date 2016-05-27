@@ -24,6 +24,7 @@
 
 package mtb_cellcounter;
 
+import java.awt.event.ActionListener;
 import java.util.Vector;
 
 import loci.common.StatusEvent;
@@ -31,8 +32,8 @@ import loci.common.StatusListener;
 import loci.common.StatusReporter;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
+import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeListener;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
-import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBQuadraticCurve2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
@@ -44,11 +45,17 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * This class has actually no functionality, but just serves as a 
  * place-holder and defines the interface. Detector functionality is
  * to be implemented in related sub-classes. 
+ * <p>
+ * Note that this class also has to implement the {@link ActionListener}
+ * interface and is supposed to handle clicks on the configuration 
+ * button of the {@link MTB_CellCounter} main window.
  *  
  * @author Birgit Moeller
  */
 public abstract class CellCounterDetectorOp extends MTBOperator
-	implements StatusListener, StatusReporter {
+	implements StatusListener, StatusReporter, ActionListener,
+		ALDSwingValueChangeListener
+	{
 	
 	/**
 	 * Input image to process.
@@ -57,14 +64,6 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
 		dataIOOrder = 1, description = "Input image.")
 	protected transient MTBImage inputImage = null;
-
-	/**
-	 * Particle detector object.
-	 */
-	@Parameter( label = "Particle detector", required = true, 
-		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
-		dataIOOrder = 2, description = "Detector.")
-	protected ParticleDetectorUWT2D particleOp;
 
 	/**
 	 * Enable/disable plastid detection.
@@ -112,7 +111,7 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 	@Parameter( label = "Resulting stomata regions", 
 		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD, 
 		dataIOOrder = 3, description = "Detected stomata regions.")
-	protected transient Vector<MTBQuadraticCurve2D> resultStomataRegions = null;
+	protected transient Vector<MTBQuadraticCurve2D> resultStomataRegions;
 
 	/**
 	 * Set of detected stromuli regions.
@@ -120,7 +119,7 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 	@Parameter( label = "Resulting stromuli regions", 
 		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD, 
 		dataIOOrder = 4, description = "Detected plastid regions.")
-	protected transient MTBRegion2DSet resultStromuliRegions = null;
+	protected transient MTBRegion2DSet resultStromuliRegions;
 
 	/**
 	 * Number of detected stromuli regions.
@@ -150,14 +149,6 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 	public void setInputImage(MTBImage img) {
 		this.inputImage = img;
 	}	
-	
-	/**
-	 * Set particle detector operator object.
-	 * @param pOp	Detector object.
-	 */
-	public void setParticleDetector(ParticleDetectorUWT2D pOp) {
-		this.particleOp = pOp;
-	}
 	
 	/**
 	 * Enable/disable plastid detection.
@@ -207,6 +198,18 @@ public abstract class CellCounterDetectorOp extends MTBOperator
 		return this.resultStromuliRegions;
 	}
 
+	/**
+	 * Method for handling over value change listener to sub-windows.
+	 * @param listener	Value change listener to notify in case of changes.
+	 */
+	public abstract void addValueChangeEventListener(
+			ALDSwingValueChangeListener listener);
+
+	/**
+	 * Method is to be called for cleaning-up the operator resources.
+	 */
+	public abstract void dispose(); 
+	
 	@Override
   public void addStatusListener(StatusListener statListener) {
 		this.m_statusListeners.add(statListener);	

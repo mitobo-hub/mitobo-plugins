@@ -24,14 +24,19 @@
 
 package mtb_cellcounter;
 
+import java.awt.event.ActionEvent;
 import java.util.Vector;
 
 import loci.common.StatusEvent;
 import loci.common.StatusListener;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
+import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeEvent;
+import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeListener;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
+import de.unihalle.informatik.Alida.gui.ALDOperatorConfigurationFrame;
+import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
 import de.unihalle.informatik.MiToBo.apps.plantCells.plastids.PlastidDetector2D;
 
 /**
@@ -51,14 +56,47 @@ public class CellCounterDetectorOpPlastids
 			"[CellCounterDetectorOpPlastids] ";
 
 	/**
+	 * Particle detector object.
+	 */
+	protected ParticleDetectorUWT2D particleOp;
+
+	/**
+	 * Configuration frame for particle detector.
+	 * <p>
+	 * This is basically an {@link ALDOperatorConfigurationFrame}, however,
+	 * restricted to the elements relevant in the context of the 
+	 * {@link MTB_CellCounter}. E.g., options for parameter validation and 
+	 * the 'Actions' menu are missing.
+	 */
+	protected ParticleDetectorConfigFrame particleConfigureFrame;
+
+	/**
 	 * Constructor.	
 	 * @throws ALDOperatorException Thrown in case of initialization error.
 	 */
 	public CellCounterDetectorOpPlastids() 
 			throws ALDOperatorException {
 		this.m_statusListeners = new Vector<StatusListener>(1);
+		// configure the particle detector, except for the input image
+		// which we do not know yet
+	  this.particleOp = new ParticleDetectorUWT2D();
+	  this.particleOp.setJmin(3);
+	  this.particleOp.setJmax(4);
+	  this.particleOp.setScaleIntervalSize(1);
+	  this.particleOp.setMinRegionSize(1);
+	  this.particleOp.setCorrelationThreshold(1.5);
+	  this.particleConfigureFrame = 
+	  	new ParticleDetectorConfigFrame(this.particleOp);
 	}
 
+	/**
+	 * Set particle detector operator object.
+	 * @param pOp	Detector object.
+	 */
+	public void setParticleDetector(ParticleDetectorUWT2D pOp) {
+		this.particleOp = pOp;
+	}
+	
 	@Override
   protected void operate() 
   		throws ALDOperatorException, ALDProcessingDAGException {
@@ -75,6 +113,13 @@ public class CellCounterDetectorOpPlastids
 			System.out.println(opIdentifier 
 				+ "running plastid detection...");
 
+		// clean-up, reset variables
+		this.resultPlastidCount = 0;
+		this.resultPlastidRegions = null;
+		this.resultStomataRegions = null;
+		this.resultStromuliCount = 0;
+		this.resultStromuliRegions = null;
+		
 		PlastidDetector2D pd = new PlastidDetector2D();
 		pd.setInputImage(this.inputImage);
 		if (this.particleOp != null) {
@@ -91,5 +136,33 @@ public class CellCounterDetectorOpPlastids
 		if (this.verbose.booleanValue())
 			System.out.println(opIdentifier + "Operations finished!");
   }
+
+	@Override
+	public void dispose() {
+		this.particleConfigureFrame.setVisible(false);
+	}
+	
+	@Override
+	public void addValueChangeEventListener(
+	    ALDSwingValueChangeListener listener) {
+		// just hand the listener over to the configuration frame
+		this.particleConfigureFrame.addValueChangeEventListener(listener);
+	}
+
+	@Override
+	public void handleValueChangeEvent(ALDSwingValueChangeEvent event) {
+		// just propagate the event to the configuration frame
+		this.particleConfigureFrame.handleValueChangeEvent(event);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent event) {
+		String command = event.getActionCommand();
+		
+		// configure button has been clicked
+		if (command.compareTo(CellCounter.CONFIGURE) == 0) {
+			this.particleConfigureFrame.setVisible(true);
+		}
+	}
 
 }

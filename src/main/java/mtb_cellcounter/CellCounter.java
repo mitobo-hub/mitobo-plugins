@@ -181,7 +181,7 @@ public class CellCounter extends JFrame
 	
 	// commands associated with particle/stromuli/stomata pre-segmentation
 	private static final String DETECT = "Detect";
-	private static final String CONFIGURE = "Configure Operator...";
+	public static final String CONFIGURE = "Configure Operator...";
 	private static final String FILTER = "Filter Particles...";
 	private static final String SELECT = "Select markers";
 	private static final String DETECTPLASTIDS = "Plastids";
@@ -288,21 +288,12 @@ public class CellCounter extends JFrame
 	/**
 	 * Particle detector operator.
 	 */
-	protected ParticleDetectorUWT2D particleOp;
+//	protected ParticleDetectorUWT2D particleOp;
 	/**
 	 * Configuration window associated with particle detector.
 	 */
 //	protected ALDSwingComponent particleConfButton;
-	protected JButton particleConfigureButton;
-	/**
-	 * Configuration frame for particle detector.
-	 * <p>
-	 * This is basically an {@link ALDOperatorConfigurationFrame}, however,
-	 * restricted to the elements relevant in the context of the 
-	 * {@link MTB_CellCounter}. E.g., options for parameter validation and 
-	 * the 'Actions' menu are missing.
-	 */
-	protected ParticleDetectorConfigFrame particleConfigureFrame;
+	protected JButton detectorConfigureButton;
 	
 	/**
 	 * Proxy object to run particle detector in thread mode.
@@ -337,23 +328,8 @@ public class CellCounter extends JFrame
 		this.dynRadioVector = new Vector<JRadioButton>();
 		this.dynColorChooserVector = new Vector<ALDSwingComponent>();
 		try {
-			// configure the particle detector, except for the input image
-			// which we do not know yet
-	    this.particleOp = new ParticleDetectorUWT2D();
-	    this.particleOp.setJmin(3);
-	    this.particleOp.setJmax(4);
-	    this.particleOp.setScaleIntervalSize(1);
-	    this.particleOp.setMinRegionSize(1);
-	    this.particleOp.setCorrelationThreshold(1.5);
-	    this.particleConfigureFrame = 
-	    	new ParticleDetectorConfigFrame(this.particleOp);
-	    this.particleConfigureButton = new JButton(CONFIGURE);
-	    this.particleConfigureButton.setActionCommand(CONFIGURE);
-	    this.particleConfigureButton.addActionListener(this);
-//	    		ALDDataIOManagerSwing.getInstance().createGUIElement(null, 
-//	    				ParticleDetectorUWT2D.class, this.particleOp, null);
-//	    this.opProxy = new OperatorExecutionProxy(this.particleOp);
-//	    this.opProxy.nodeParameterChanged();
+	    this.detectorConfigureButton = new JButton(CONFIGURE);
+	    this.detectorConfigureButton.setActionCommand(CONFIGURE);
 	    
 	    // init the detector container
 	    CellCounterDetectorOp detectorContainer;
@@ -367,20 +343,15 @@ public class CellCounter extends JFrame
 	    	detectorContainer = new CellCounterDetectorOpPlastids();
 	    }
 	    this.detectorOp = detectorContainer;
-	    this.detectorOp.setParticleDetector(this.particleOp);
 	    this.detectorOp.addStatusListener(this);
 	    this.opProxy = new OperatorExecutionProxy(this.detectorOp);
 	    this.opProxy.nodeParameterChanged();
+	    // register detector operator as listener for config button
+	    this.detectorConfigureButton.addActionListener(this.detectorOp);
     } catch (ALDOperatorException e) {
     	IJ.error("Cannot initialize particle detector, initial\n" 
      		+ "pre-segmentation will not be possible!");
-    	this.particleOp = null;
     } 
-//		catch (ALDDataIOException e) {
-//    	IJ.error("Cannot initialize configuration window for \n" 
-//   			+ "particle detector, changing configuration will not be possible!");
-//    	this.particleConfButton = null;
-//    }
 		initGUI();
 		populateTxtFields();
 		instance = this;
@@ -594,16 +565,16 @@ public class CellCounter extends JFrame
 		this.statButtonPanel.add(this.cbDetectStomata);
 
 		/*
-		 * Initial particle detection.
+		 * Initial object detection.
 		 */
 		
-		// detect particles
+		// add button to run detector
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridx=0;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		if (this.particleOp != null) {
+		if (this.detectorOp != null) {
 			this.detectButton = makeButton(DETECT,
 					"Perform pre-segmentation of particles.");
 			gb.setConstraints(this.detectButton,gbc);
@@ -616,17 +587,15 @@ public class CellCounter extends JFrame
 			this.statButtonPanel.add(dummyButton);
 		}
 
-		// configure detection
+		// add button to configure detector
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridx=0;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		if (this.particleConfigureButton != null) {
-//			gb.setConstraints(this.particleConfButton.getJComponent(),gbc);
-//			this.statButtonPanel.add(this.particleConfButton.getJComponent());
-			gb.setConstraints(this.particleConfigureButton,gbc);
-			this.statButtonPanel.add(this.particleConfigureButton);
+		if (this.detectorConfigureButton != null) {
+			gb.setConstraints(this.detectorConfigureButton,gbc);
+			this.statButtonPanel.add(this.detectorConfigureButton);
 		}
 		else {
 			JButton dummyButton = new JButton("Configure...");
@@ -1105,7 +1074,7 @@ public class CellCounter extends JFrame
 				&& this.ic.getImage() != null
 				&& this.ic.getImage().getWindow() != null)
 			this.ic.getImage().getWindow().dispose();
-		this.particleConfigureFrame.quit();
+		this.detectorOp.dispose();
 		if (this.pFilter != null)
 			this.pFilter.dispose();
 		super.dispose();
@@ -1221,9 +1190,6 @@ public class CellCounter extends JFrame
 			this.dispose();			
 		}else if (command.compareTo(ABOUT) == 0) {
 			this.showAboutBox();
-		}
-		else if (command.compareTo(CONFIGURE) == 0) {
-			this.particleConfigureFrame.setVisible(true);
 		}
 		// detect particles
 		else if (command.compareTo(DETECT) == 0) {
@@ -1845,7 +1811,8 @@ public class CellCounter extends JFrame
 		 */
 		public OperatorExecutionProxy(ALDOperator op) {
 			try {
-				this.alidaWorkflow = new ALDWorkflow(" ",ALDWorkflowContextType.OTHER);
+				this.alidaWorkflow = 
+						new ALDWorkflow(" ",ALDWorkflowContextType.OTHER);
 				this.alidaWorkflow.addALDWorkflowEventListener(this);
 			} catch (ALDOperatorException e) {
 				IJ.error("Workflow initialization failed! Exiting!");
@@ -1855,7 +1822,7 @@ public class CellCounter extends JFrame
 			try {
 				this.opNodeID = this.alidaWorkflow.createNode(op);
 				this.valueChangeListener = new ValueChangeListener(this.opNodeID);
-				CellCounter.this.particleConfigureFrame.addValueChangeEventListener(
+				CellCounter.this.detectorOp.addValueChangeEventListener(
 						this.valueChangeListener);
 			} catch (ALDWorkflowException ex) {
 				JOptionPane.showMessageDialog(null, "Instantiation of operator \""
@@ -2122,15 +2089,16 @@ public class CellCounter extends JFrame
 				}
 				
 				// update GUI
-				CellCounter.this.dynRadioVector.elementAt(1).setSelected(true);
-//				CellCounter.this.updateButton.setEnabled(true);
+				CellCounter.this.dynRadioVector.elementAt(markerIndex).
+					setSelected(true);
 				CellCounter.this.selectButton.setEnabled(true);
 				if (CellCounter.this.ic!=null)
 					CellCounter.this.ic.repaint();
 				populateTxtFields();
 				break;
 			default:
-				System.err.println("Event type \'" + type + "\' not yet handled...");
+				System.err.println("Event type \'" 
+						+ type + "\' not yet handled...");
 			}
 		}
 
