@@ -338,7 +338,6 @@ public class CellCounter extends JFrame
 	    	detectorContainer = (CellCounterDetectorOp)Class.forName(
 	    			"mtb_cellcounter.CellCounterDetectorOpAll").newInstance();
 	    } catch (Exception e) {
-	    	e.printStackTrace();
 	    	// ... if it cannot be found, fall-back to plastid-only detector
 	    	detectorContainer = new CellCounterDetectorOpPlastids();
 	    }
@@ -1394,8 +1393,10 @@ public class CellCounter extends JFrame
       		Color.class, this.dynColorChooserVector.get(index));
     		this.typeVector.get(index).setColor(cc);
     	}
-    	this.ic.updateStatusBar();
-    	this.ic.updateCursor();
+    	if (this.ic != null) {
+    		this.ic.updateStatusBar();
+    		this.ic.updateCursor();
+    	}
     } catch (ALDDataIOException e) {
     	IJ.error("Problems changing color, something went wrong...");
     }
