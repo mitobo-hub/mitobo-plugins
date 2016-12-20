@@ -18,7 +18,7 @@
     <!-- define a default native directory, does not work in all cases,
 	 but avoids that Maven fails completely -->
     <native.libdir>lib64</native.libdir>
-    <mitobo.version>1.8.4-SNAPSHOT</mitobo.version>
+    <mitobo.version>1.8.4</mitobo.version>
   </properties>
 
   <licenses>
