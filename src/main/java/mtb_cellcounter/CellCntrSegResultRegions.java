@@ -41,32 +41,18 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet;
 import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawType;
 
 /**
- * Class representing results of {@link MTB_CellCounter} 
+ * Class representing region-based results of {@link MTB_CellCounter} 
  * presegmentation stage(s).
  *
  * @author Birgit Moeller
  */
-public class CellCntrPresegmentationResult {
+public class CellCntrSegResultRegions 
+	extends CellCntrSegResult {
 
-	/**
-	 * Reference to the image from which the segmentation data originates.
-	 */
-	private MTBImage image;
-	
 	/**
    * Set of pre-segmented regions.
    */
   private MTBRegion2DSet detectedRegions = null;
-
-  /**
-   * Set of pre-segmented borders.
-   */
-  private MTBBorder2DSet detectedBorders = null;
-
-  /**
-   * Vector tagging regions as active or not during presegmentation phase.
-   */
-  private Vector<Boolean> activityArray = null;
 
   /**
    * Vector of average region intensities.
@@ -80,9 +66,9 @@ public class CellCntrPresegmentationResult {
    * @param borders						Corresponding borders of regions.
    * @param avgIntensities		Average intensities of regions.
    */
-  public CellCntrPresegmentationResult(MTBImage img, MTBRegion2DSet regs,
+  public CellCntrSegResultRegions(MTBImage img, MTBRegion2DSet regs,
   		MTBBorder2DSet borders, Vector<Double> avgIntensities) {
-  	this.image = img;
+  	super(img);
   	this.detectedRegions = regs;
   	this.detectedBorders = borders;
   	this.averageRegionIntensities = avgIntensities;
@@ -101,9 +87,9 @@ public class CellCntrPresegmentationResult {
    * @param img			Image on which regions were detected.
    * @param regs		Extracted regions.
    */
-	public CellCntrPresegmentationResult(MTBImage img,
+	public CellCntrSegResultRegions(MTBImage img,
 			MTBRegion2DSet regs) {
-		this.image = img;
+		super(img);
 		this.detectedRegions = regs;
 		this.detectedBorders = this.extractRegionBorders();
 		if (this.detectedBorders == null) {
@@ -176,45 +162,41 @@ public class CellCntrPresegmentationResult {
 	 * Remove an item from the set.
 	 * @param n		Index of data item to remove.
 	 */
-	public void removeItem(int n) {
+	@Override
+  public void removeItem(int n) {
 		// index out of range, do nothing
 		if (n >= this.detectedRegions.size())
 			return;
-		if (this.activityArray != null)
-			this.activityArray.remove(n);
 		if (this.averageRegionIntensities != null)
 			this.averageRegionIntensities.remove(n);
 		if (this.detectedRegions != null)
 			this.detectedRegions.removeElementAt(n);
-		if (this.detectedBorders != null)
-			this.detectedBorders.removeElementAt(n);
+		super.removeItem(n);
 	}
 	
 	/**
 	 * Removes the last data item.
 	 */
-	public void removeLastItem(){
+	@Override
+  public void removeLastItem(){
 		// no data, do nothing
 		if (this.detectedRegions.size() == 0)
 			return;
-		if (this.activityArray != null && this.activityArray.size() > 0)
-			this.activityArray.removeElementAt(this.activityArray.size()-1);
 		if (this.averageRegionIntensities != null)
 			this.averageRegionIntensities.removeElementAt(
 				this.averageRegionIntensities.size()-1);
 		if (this.detectedRegions != null)
 			this.detectedRegions.removeElementAt(this.detectedRegions.size()-1);
-		if (this.detectedBorders != null)
-			this.detectedBorders.removeElementAt(this.detectedBorders.size()-1);
+		super.removeLastItem();
 	}
 
 	/**
 	 * Clears all data.
 	 */
-	public void clearData() {
-		this.activityArray = new Vector<Boolean>();
+	@Override
+  public void clearData() {
+		super.clearData();
 		this.averageRegionIntensities = new Vector<Double>();
-		this.detectedBorders = null;
 		this.detectedRegions = null;
 	}
 	
@@ -254,14 +236,6 @@ public class CellCntrPresegmentationResult {
   }
   
   /**
-   * Get set of region borders.
-   * @return	Set of borders.
-   */
-  public MTBBorder2DSet getBorders() {
-  	return this.detectedBorders;
-  }
-
-  /**
    * Get number of regions in set.
    * @return	Number of regions.
    */
@@ -275,13 +249,5 @@ public class CellCntrPresegmentationResult {
    */
   public Vector<Double> getAverageIntensities() {
   	return this.averageRegionIntensities;
-  }
-  
-  /**
-   * Get reference to activity array.
-   * @return	Activity array.
-   */
-  public Vector<Boolean> getActivityArray() {
-  	return this.activityArray;
   }
 }

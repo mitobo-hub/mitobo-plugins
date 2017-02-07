@@ -105,7 +105,7 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	/**
 	 * Current set of segmented regions.
 	 */
-	private CellCntrPresegmentationResult currentSegmentation;
+	private CellCntrSegResultRegions currentSegmentation;
 	
 	/**
 	 * Size of biggest region in current segmentation.
@@ -144,7 +144,7 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	 * @param image			Image from which segmentation data originates.
 	 */
 	public ParticleFilterFrame(CellCounter counter, 
-			CellCntrPresegmentationResult regs,	MTBImage image) {
+			CellCntrSegResultRegions regs,	MTBImage image) {
 		super("Region Filter");
 		this.cc = counter;
 		this.ij = IJ.getInstance();
@@ -207,7 +207,7 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	 * @param data		New data.
 	 * @param image		Image from where segmentation data originates.
 	 */
-	private void setSegmentationData(CellCntrPresegmentationResult data, 
+	private void setSegmentationData(CellCntrSegResultRegions data, 
 			MTBImage image) {
 		this.currentSegmentation = data;
 		
@@ -249,7 +249,7 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 		}
 	}
 
-	public void updateSegmentationData(CellCntrPresegmentationResult data, 
+	public void updateSegmentationData(CellCntrSegResultRegions data, 
 			MTBImage image) {
 		this.setSegmentationData(data, image);
 		this.panelFilterSize.setData(this.histogramRegionSizes, 
