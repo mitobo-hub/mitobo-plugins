@@ -37,7 +37,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.gui.ALDOperatorConfigurationFrame;
 import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
-import de.unihalle.informatik.MiToBo.apps.plantCells.plastids.PlastidDetector2D;
+import de.unihalle.informatik.MiToBo.apps.plantCells.plastids.PlastidDetector2DParticles;
 
 /**
  * Cell counter detector for detecting plastids.
@@ -112,7 +112,7 @@ public class CellCounterDetectorOpPlastids
 		this.resultStromuliCount = 0;
 		this.resultStromuliRegions = null;
 		
-		PlastidDetector2D pd = new PlastidDetector2D();
+		PlastidDetector2DParticles pd = new PlastidDetector2DParticles();
 		pd.setInputImage(this.inputImage);
 		if (this.particleOp != null) {
 			pd.setDetector(this.particleOp);
