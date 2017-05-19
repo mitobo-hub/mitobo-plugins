@@ -1,6 +1,7 @@
 .classpath
 .factorypath
 .project
+.externalToolBuilders/
 .settings/
 plugins
 target
