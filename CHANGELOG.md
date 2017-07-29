@@ -15,6 +15,10 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Fixed
 
 
+## [1.8.5] - 2017-07-29
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 1.8.5
+
 ## [1.8.4] - 2017-03-27
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo-Plugins 1.8.4
