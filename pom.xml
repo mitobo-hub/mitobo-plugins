@@ -395,6 +395,17 @@
     </repository>
   </distributionManagement>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+	<groupId>org.scijava</groupId>
+	<artifactId>pom-scijava</artifactId>
+	<version>17.0.0</version>
+	<type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo</groupId>
