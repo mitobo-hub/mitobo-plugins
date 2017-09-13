@@ -40,7 +40,8 @@ public class CellCntrMarkerShapeRegion implements CellCntrMarkerShape {
 	 * Default constructor, it's protected to avoid constructing objects
 	 * without region data.
 	 */
-	protected CellCntrMarkerShapeRegion() {
+	@SuppressWarnings("unused")
+	private CellCntrMarkerShapeRegion() {
 		// nothing to do here, should never be called explicitly
 	}
 	

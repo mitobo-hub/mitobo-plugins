@@ -40,7 +40,8 @@ public class CellCntrMarkerShapeCurve implements CellCntrMarkerShape {
 	 * Default constructor, it's protected to avoid constructing objects
 	 * without curve data.
 	 */
-	protected CellCntrMarkerShapeCurve() {
+	@SuppressWarnings("unused")
+	private CellCntrMarkerShapeCurve() {
 		// nothing to do here, should never be called explicitly
 	}
 	
