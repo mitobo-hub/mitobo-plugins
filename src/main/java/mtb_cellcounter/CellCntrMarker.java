@@ -57,46 +57,116 @@
 package mtb_cellcounter;
 
 /**
+ * Class to represent a single marker in the image.
+ * <p>
+ * In the MTB Cell Counter in addition to a position a marker also owns 
+ * a shape, e.g., a region contour. 
  *
  * @author Kurt De Vos
+ * @author Birgit Moeller
  */
 public class CellCntrMarker {
+	
+    /**
+     * x-coordinate of marker.
+     */
     private int x;
+    /**
+     * y-coordinate of marker.
+     */
     private int y;
+    /**
+     * z-coordinate of marker.
+     */
     private int z;
     
-    /** Creates a new instance of Marker */
-    public CellCntrMarker() {
+    /**
+     * (Optional) shape of marker.
+     */
+    private CellCntrMarkerShape shape = null;
+    
+    /** 
+     * Creates a new instance of marker class.
+     */
+    protected CellCntrMarker() {
+    	// nothing to do here
     }
     
-    public CellCntrMarker(int x, int y, int z) {
-        this.x=x;
-        this.y=y;
-        this.z=z;
+    /**
+     * Constructor with given coordinates and shape.
+     * @param xc	x-coordinate of marker.
+     * @param yc	y-coordinate of marker.
+     * @param zc	z-coordinate of marker.
+     * @param s		Shape of marker.
+     */
+    public CellCntrMarker(int xc, int yc, int zc, CellCntrMarkerShape s) {
+    	this.x = xc;
+    	this.y = yc;
+    	this.z = zc;
+    	this.shape = s;
     }
 
+    /**
+     * Get x-coordinate.
+     * @return	x-coordinate of marker.
+     */
     public int getX() {
-        return x;
+    	return this.x;
     }
 
-    public void setX(int x) {
-        this.x = x;
+    /**
+     * Set x-coordinate of marker.
+     * @param xc	New x-coordinate.	
+     */
+    public void setX(int xc) {
+    	this.x = xc;
     }
 
+    /**
+     * Get y-coordinate.
+     * @return	y-coordinate of marker.
+     */
     public int getY() {
-        return y;
+    	return this.y;
     }
 
-    public void setY(int y) {
-        this.y = y;
+    /**
+     * Set y-coordinate of marker.
+     * @param yc	New y-coordinate.	
+     */
+    public void setY(int yc) {
+    	this.y = yc;
     }
 
+    /**
+     * Get z-coordinate.
+     * @return	z-coordinate of marker.
+     */
     public int getZ() {
-        return z;
+    	return this.z;
     }
 
-    public void setZ(int z) {
-        this.z = z;
+    /**
+     * Set z-coordinate of marker.
+     * @param zc	New z-coordinate.	
+     */
+    public void setZ(int zc) {
+    	this.z = zc;
     }
 
+    /**
+     * Get shape of marker.
+     * @return	Shape object.
+     */
+    public CellCntrMarkerShape getShape() {
+    	return this.shape;
+    }
+    
+    /**
+     * Set shape of marker.
+     * @param s	New shape object.
+     */
+    public void setShape(CellCntrMarkerShape s) {
+    	this.shape = s;
+    }
 }

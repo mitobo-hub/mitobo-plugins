@@ -304,7 +304,7 @@ public class CellCntrImageCanvas extends ImageCanvas
 				if (targetMarker != null && targetVector != null) {
 					CellCntrMarker m = new CellCntrMarker(
 							targetMarker.getX(), targetMarker.getY(), 
-								this.img.getCurrentSlice());
+								this.img.getCurrentSlice(), null);
 					this.currentMarkerVector.addMarker(m);				
 					// remove old marker from its list
 					targetVector.removeMarker(
@@ -313,7 +313,8 @@ public class CellCntrImageCanvas extends ImageCanvas
 			}
 			// add mode
 			else {
-				CellCntrMarker m = new CellCntrMarker(x, y, this.img.getCurrentSlice());
+				CellCntrMarker m = 
+					new CellCntrMarker(x, y, this.img.getCurrentSlice(), null);
 				this.currentMarkerVector.addMarker(m);				
 			}
 		}
