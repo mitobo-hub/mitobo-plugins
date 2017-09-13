@@ -85,10 +85,16 @@ public class CellCntrMarker {
      */
     private CellCntrMarkerShape shape = null;
     
+    /**
+     * Flag to indicate if marker is active, by default true.
+     */
+    private boolean isActive = true;
+    
     /** 
      * Creates a new instance of marker class.
      */
-    protected CellCntrMarker() {
+    @SuppressWarnings("unused")
+		private CellCntrMarker() {
     	// nothing to do here
     }
     
@@ -104,6 +110,7 @@ public class CellCntrMarker {
     	this.y = yc;
     	this.z = zc;
     	this.shape = s;
+    	this.isActive = true;
     }
 
     /**
@@ -168,5 +175,34 @@ public class CellCntrMarker {
      */
     public void setShape(CellCntrMarkerShape s) {
     	this.shape = s;
+    }
+    
+    /**
+     * Delete shape object, i.e. reset to null.
+     */
+    public void resetShape() {
+    	this.shape = null;
+    }
+    
+    /**
+     * Check if marker is active.
+     * @return	True if marker is active, otherwise false.
+     */
+    public boolean isActive() {
+    	return this.isActive;
+    }
+    
+    /**
+     * Set marker active.
+     */
+    public void setActive() {
+    	this.isActive = true;
+    }
+    
+    /**
+     * Set marker inactive.
+     */
+    public void setInactive() {
+    	this.isActive = true;
     }
 }
