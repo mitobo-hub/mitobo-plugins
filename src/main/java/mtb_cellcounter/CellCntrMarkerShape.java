@@ -22,6 +22,8 @@
 
 package mtb_cellcounter;
 
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
+
 /**
  * Class to represent the geometric shape of a single marker in the image.
  * <p>
@@ -35,5 +37,11 @@ public interface CellCntrMarkerShape {
 	/*
 	 * Interface class without functionality. 
 	 */
+	
+	/**
+	 * Get outline of shape.
+	 * @return	Outline of shape.
+	 */
+	public abstract MTBBorder2D getOutline();
 	
 }

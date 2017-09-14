@@ -22,6 +22,7 @@
 
 package mtb_cellcounter;
 
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 
 /**
@@ -52,4 +53,15 @@ public class CellCntrMarkerShapeRegion implements CellCntrMarkerShape {
 	public CellCntrMarkerShapeRegion(MTBRegion2D r) {
 		this.mRegion = r;
 	}
+	
+	@Override
+	public MTBBorder2D getOutline() {
+		try {
+			return this.mRegion.getBorder();
+		} catch (Exception e) {
+			System.err.println("Something went wrong extracting the border...");
+			return null;
+		}
+	}
+
 }

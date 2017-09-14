@@ -22,6 +22,11 @@
 
 package mtb_cellcounter;
 
+import java.awt.geom.Point2D;
+import java.util.Vector;
+
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D.BorderConnectivity;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBQuadraticCurve2D;
 
 /**
@@ -51,5 +56,31 @@ public class CellCntrMarkerShapeCurve implements CellCntrMarkerShape {
 	 */
 	public CellCntrMarkerShapeCurve(MTBQuadraticCurve2D c) {
 		this.mCurve = c;
+	}
+	
+	@Override
+	public MTBBorder2D getOutline() {
+		
+		// get ellipse parameters
+		double major = this.mCurve.getSemiLengthAxisA();
+		double minor = this.mCurve.getSemiLengthAxisB();
+		double xCenter = this.mCurve.getCenterX();
+		double yCenter = this.mCurve.getCenterY();
+		double theta = this.mCurve.getOrientation();
+
+		Vector<Point2D.Double> bps = new Vector<Point2D.Double>();
+		
+		// convert angle from degrees to radiant
+		double trad = Math.PI/180.0*theta;
+		for (int i=0;i<360; ++i) {
+			double rad = Math.PI/180.0*i;
+			double x = major * Math.cos(rad);
+			double y = minor * Math.sin(rad);
+			// rotate ellipse
+			int rx = (int)(Math.cos(trad)*x - Math.sin(trad)*y + xCenter);
+			int ry = (int)(Math.sin(trad)*x + Math.cos(trad)*y + yCenter);
+			bps.add(new Point2D.Double(rx,ry));
+		}
+		return new MTBBorder2D(bps, BorderConnectivity.CONNECTED_8);
 	}
 }
