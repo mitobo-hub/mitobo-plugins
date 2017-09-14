@@ -29,6 +29,8 @@ package mtb_cellcounter;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Point2D;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -38,6 +40,8 @@ import javax.swing.JPanel;
 import ij.*;
 import ij.gui.*;
 import ij.measure.*;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 
 /** 
@@ -103,9 +107,9 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	private JButton closeButton;
 	
 	/**
-	 * Current set of segmented regions.
+	 * Current markers.
 	 */
-	private CellCntrSegResultRegions currentSegmentation;
+	private CellCntrMarkerVector currentMarkers;
 	
 	/**
 	 * Size of biggest region in current segmentation.
@@ -140,18 +144,18 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	/**
 	 * Default constructor.
 	 * @param counter		Reference to associated cell counter.
-	 * @param regs			Segmentation data.
+	 * @param markers		Markers to filter.
 	 * @param image			Image from which segmentation data originates.
 	 */
 	public ParticleFilterFrame(CellCounter counter, 
-			CellCntrSegResultRegions regs,	MTBImage image) {
+			CellCntrMarkerVector markers,	MTBImage image) {
 		super("Region Filter");
 		this.cc = counter;
 		this.ij = IJ.getInstance();
 		GridBagLayout gridbag = new GridBagLayout();
 		GridBagConstraints c = new GridBagConstraints();
 		setLayout(gridbag);
-		this.setSegmentationData(regs, image);
+		this.setMarkers(markers, image);
 		
 		int y = 0;
 		this.panelFilterSize = 
@@ -198,27 +202,38 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	}
 
 	/**
-	 * Set new segmentation data.
+	 * Set new markers.
 	 * <p>
 	 * This methods initializes all internal member variables related to 
-	 * segmentation data, e.g., minimal and maximal values of size and intensity
+	 * marker data, e.g., minimal and maximal values of size and intensity
 	 * ranges, and data histograms.
 	 * 
 	 * @param data		New data.
 	 * @param image		Image from where segmentation data originates.
 	 */
-	private void setSegmentationData(CellCntrSegResultRegions data, 
+	private void setMarkers(CellCntrMarkerVector data, 
 			MTBImage image) {
-		this.currentSegmentation = data;
+		this.currentMarkers = data;
+		
+		MTBRegion2DSet markerRegions = new MTBRegion2DSet();
+		Iterator<CellCntrMarker> it = this.currentMarkers.iterator();
+		while (it.hasNext()) {
+			CellCntrMarkerShape shape = it.next().getShape();
+			if (!(shape.getClass().equals(CellCntrMarkerShapeRegion.class))) {
+				System.err.println("Error! Found non-region shape!");
+				return;
+			}
+			markerRegions.add(((CellCntrMarkerShapeRegion)shape).getRegion());
+		}
 		
 		// minimal and maximal region size
-		this.maxRegSize = this.currentSegmentation.getRegions().calcMaxSize();
-		this.minRegSize = this.currentSegmentation.getRegions().calcMinSize();
-		
+		this.maxRegSize = markerRegions.calcMaxSize();
+		this.minRegSize = markerRegions.calcMinSize();
+
 		// calculate histogram of region sizes
 		this.histogramRegionSizes = new int[256];
-		for (int i=0;i<data.getRegions().size();++i) {
-			int s = data.getRegions().get(i).getArea();
+		for (int i=0;i<markerRegions.size();++i) {
+			int s = markerRegions.get(i).getArea();
 			int bin = (int)(0.5+(double)(s-this.minRegIntensity) / 
 					(double)(this.maxRegSize-this.minRegSize)*256.0);
 			if (bin >= 0 && bin < 256)
@@ -226,32 +241,48 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 		}
 		
 		// minimal and maximal region intensity
-		Vector<Double> regIntensities = 
-			this.currentSegmentation.getAverageIntensities();
+		Vector<Point2D.Double> points;
+		MTBRegion2D reg;
+		double intensitySum = 0, averageIntensity = 0;
 		double minimalRegIntensity = Double.MAX_VALUE, maximalRegIntensity = 0;
-		for (int i=0; i<data.getRegions().size(); ++i) {
-			if (regIntensities.elementAt(i).doubleValue() > maximalRegIntensity)
-				maximalRegIntensity = regIntensities.elementAt(i).doubleValue();
-			if (regIntensities.elementAt(i).doubleValue() < minimalRegIntensity)
-				minimalRegIntensity = regIntensities.elementAt(i).doubleValue();
+		for (int j=0; j<markerRegions.size(); ++j) {
+			reg = markerRegions.get(j);
+			intensitySum = 0;
+			points = reg.getPoints();
+			for (Point2D.Double p: points) {
+				intensitySum += image.getValueDouble((int)p.x, (int)p.y);
+			}
+			averageIntensity = intensitySum / points.size();
+			((CellCntrMarkerShapeRegion)this.currentMarkers.get(j).getShape())
+					.setAvgIntensity(averageIntensity);
+			if (averageIntensity > maximalRegIntensity)
+				maximalRegIntensity = averageIntensity;
+			if (averageIntensity < minimalRegIntensity)
+				minimalRegIntensity = averageIntensity;
 		}
 		this.maxRegIntensity = (int)(maximalRegIntensity+0.5);
 		this.minRegIntensity = (int)(minimalRegIntensity+0.5);
 
 		// calculate intensity histogram
 		this.histogramRegionIntensities = new int[256];
-		for (int i=0;i<data.getRegions().size();++i) {
-			double s = regIntensities.elementAt(i).doubleValue();
+		for (int i=0;i<this.currentMarkers.size();++i) {
+			double s = ((CellCntrMarkerShapeRegion)this.currentMarkers.elementAt(i)
+					.getShape()).getAvgIntensity();
 			int bin = (int)(0.5 + (s-this.minRegIntensity) / 
 					(this.maxRegIntensity - this.minRegIntensity)*256.0);
 			if (bin >= 0 && bin < 256)
 				this.histogramRegionIntensities[bin]++;
 		}
-	}
+	}		
 
-	public void updateSegmentationData(CellCntrSegResultRegions data, 
+	/**
+	 * Update marker data.
+	 * @param data	New marker data.
+	 * @param image	New image.
+	 */
+	public void updateMarkerData(CellCntrMarkerVector data, 
 			MTBImage image) {
-		this.setSegmentationData(data, image);
+		this.setMarkers(data, image);
 		this.panelFilterSize.setData(this.histogramRegionSizes, 
 			this.minRegSize, this.maxRegSize);
 		this.panelFilterSize.updateGUI();
@@ -329,8 +360,23 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 			int maxSize = this.panelFilterSize.getMaxSliderValue();
 			int minIntensity = this.panelFilterIntensity.getMinSliderValue();
 			int maxIntensity = this.panelFilterIntensity.getMaxSliderValue();
-			this.currentSegmentation.filterRegions(
-					minSize, maxSize, minIntensity, maxIntensity);
+			
+			int regionCount = this.currentMarkers.size();
+			for (int i=0; i<regionCount; ++i) {
+				this.currentMarkers.get(i).setActive();
+				CellCntrMarkerShapeRegion sr = 
+					(CellCntrMarkerShapeRegion)this.currentMarkers.get(i).getShape();
+				if (sr != null) {
+					if (   sr.getRegion().getArea() < minSize 
+							|| sr.getRegion().getArea() > maxSize ) {
+						this.currentMarkers.get(i).setInactive();
+					}
+					else if (   sr.getAvgIntensity() < minIntensity
+						       || sr.getAvgIntensity() > maxIntensity) {
+						this.currentMarkers.get(i).setInactive();
+					}
+				}
+			}
 			this.cc.ic.repaint();
 			this.cc.populateTxtFields();
 		}
