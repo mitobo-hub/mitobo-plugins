@@ -38,6 +38,11 @@ public class CellCntrMarkerShapeRegion implements CellCntrMarkerShape {
 	protected MTBRegion2D mRegion = null;
 	
 	/**
+	 * Average intensity of all region pixels.
+	 */
+	protected double avgIntensity = -1;
+	
+	/**
 	 * Default constructor, it's protected to avoid constructing objects
 	 * without region data.
 	 */
@@ -52,6 +57,30 @@ public class CellCntrMarkerShapeRegion implements CellCntrMarkerShape {
 	 */
 	public CellCntrMarkerShapeRegion(MTBRegion2D r) {
 		this.mRegion = r;
+	}
+	
+	/**
+	 * Get region representing the shape.
+	 * @return	Region object.
+	 */
+	public MTBRegion2D getRegion() {
+		return this.mRegion;
+	}
+
+	/**
+	 * Set average region intensity.
+	 * @param ai	Average intensity.
+	 */
+	public void setAvgIntensity(double ai) {
+		this.avgIntensity = ai;
+	}
+	
+	/**
+	 * Get average intensity.
+	 * @return	Average intensity, -1 if not available.
+	 */
+	public double getAvgIntensity() {
+		return this.avgIntensity;
 	}
 	
 	@Override
