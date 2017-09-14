@@ -123,10 +123,10 @@ public class ReadXML {
 				NodeList markerXNodeList = markerElement.getElementsByTagName("MarkerX");
 				NodeList markerYNodeList = markerElement.getElementsByTagName("MarkerY");
 				NodeList markerZNodeList = markerElement.getElementsByTagName("MarkerZ");
-				CellCntrMarker marker = new CellCntrMarker();
-				marker.setX(Integer.parseInt(readValue(markerXNodeList,0)));
-				marker.setY(Integer.parseInt(readValue(markerYNodeList,0)));
-				marker.setZ(Integer.parseInt(readValue(markerZNodeList,0)));
+				CellCntrMarker marker = new CellCntrMarker(
+					Integer.parseInt(readValue(markerXNodeList,0)),
+						Integer.parseInt(readValue(markerYNodeList,0)),
+							Integer.parseInt(readValue(markerZNodeList,0)), null);
 				markerVector.addMarker(marker);
 			}
 			typeVector.add(markerVector);
