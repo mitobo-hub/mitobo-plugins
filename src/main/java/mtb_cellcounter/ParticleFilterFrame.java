@@ -361,24 +361,43 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 			int minIntensity = this.panelFilterIntensity.getMinSliderValue();
 			int maxIntensity = this.panelFilterIntensity.getMaxSliderValue();
 			
-			int regionCount = this.currentMarkers.size();
-			for (int i=0; i<regionCount; ++i) {
-				this.currentMarkers.get(i).setActive();
-				CellCntrMarkerShapeRegion sr = 
-					(CellCntrMarkerShapeRegion)this.currentMarkers.get(i).getShape();
-				if (sr != null) {
-					if (   sr.getRegion().getArea() < minSize 
-							|| sr.getRegion().getArea() > maxSize ) {
-						this.currentMarkers.get(i).setInactive();
-					}
-					else if (   sr.getAvgIntensity() < minIntensity
-						       || sr.getAvgIntensity() > maxIntensity) {
-						this.currentMarkers.get(i).setInactive();
-					}
-				}
-			}
+			filterMarkerRegions(this.currentMarkers, 
+					minSize, maxSize, minIntensity, maxIntensity);
+			
 			this.cc.ic.repaint();
 			this.cc.populateTxtFields();
+		}
+	}
+	
+	/**
+	 * Function to filter given set of markers with region shape.
+	 * <p>
+	 * Markers not coinciding with the given criteria are set inactive 
+	 * after filtering.
+	 * 
+	 * @param markers				Set of markers to filter.
+	 * @param minSize				Minimal size of valid markers.
+	 * @param maxSize				Maximal size of valid markers.
+	 * @param minIntensity	Minimal intensity of valid markers.
+	 * @param maxIntensity	Maximal intensity of valid markers.
+	 */
+	public static void filterMarkerRegions(CellCntrMarkerVector markers, 
+		int minSize, int maxSize, int minIntensity,	int maxIntensity) {
+		int regionCount = markers.size();
+		for (int i=0; i<regionCount; ++i) {
+			markers.get(i).setActive();
+			CellCntrMarkerShapeRegion sr = 
+					(CellCntrMarkerShapeRegion)markers.get(i).getShape();
+			if (sr != null) {
+				if (   sr.getRegion().getArea() < minSize 
+						|| sr.getRegion().getArea() > maxSize ) {
+					markers.get(i).setInactive();
+				}
+				else if (   sr.getAvgIntensity() < minIntensity
+						     || sr.getAvgIntensity() > maxIntensity) {
+					markers.get(i).setInactive();
+				}
+			}
 		}
 	}
 }
