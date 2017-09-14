@@ -558,29 +558,34 @@ public class CellCntrImageCanvas extends ImageCanvas
 			Color defColor = mv.getColor();
 			ListIterator mit = mv.listIterator();
 			
-			CellCntrSegResult regs = mv.getSegmentationData();
+//			CellCntrSegResult regs = mv.getSegmentationData();
 			
-			Vector<Boolean> mask = null;
-			if (regs != null)
-				mask = regs.getActivityArray();
+//			Vector<Boolean> mask = null;
+//			if (regs != null)
+//				mask = regs.getActivityArray();
 			//            i=0;
 			//            while(mit.hasNext()){
 				//                CellCntrMarker m = (CellCntrMarker)mit.next();
+
 			for (i=0;i<mv.size();++i) {
 				CellCntrMarker m = mv.elementAt(i);
 
 				// check if marker is active
-				if (mask != null	&& i < mask.size() && !mask.get(i).booleanValue()) {
-					g2.setColor(Color.LIGHT_GRAY);
-				}
-				else {
-					g2.setColor(defColor);
-				}
+//				if (mask != null	&& i < mask.size() && !mask.get(i).booleanValue()) {
 
 				boolean sameSlice = m.getZ()==this.img.getCurrentSlice();
 				if (sameSlice || this.showAll){
+
+					if (!m.isActive()) {
+						g2.setColor(Color.LIGHT_GRAY);
+					}
+					else {
+						g2.setColor(defColor);
+					}
+
 					xM = ((m.getX()-this.srcRect.x)*this.magnification);
 					yM = ((m.getY()-this.srcRect.y)*this.magnification);
+
 					// draw markers
 					if (this.showMarkers) {
 						if (sameSlice)
@@ -591,26 +596,22 @@ public class CellCntrImageCanvas extends ImageCanvas
 					// draw numbers
 					if (this.showNumbers)
 						g2.drawString(Integer.toString(typeID), (int)xM+3, (int)yM-3);
-				}
-			}
-
-			// draw contours, if requested
-			if (   this.showBorders 
-					&& regs != null && regs.getBorders() != null) {
-				MTBBorder2D border;
-				for (i=0; i< regs.getBorders().size(); ++i) {
-					if (mask != null	&& !mask.get(i).booleanValue()) {
-						g2.setColor(Color.LIGHT_GRAY);
-					}
-					else {
-						g2.setColor(defColor);
-					}
-					border = regs.getBorders().elementAt(i);
-					for (int j=0; j<border.getPointNum(); ++j) {
-						Point2D.Double p = border.getPointAt(j);
-						xM = ((p.getX()-this.srcRect.x)*this.magnification);
-						yM = ((p.getY()-this.srcRect.y)*this.magnification);
-						g2.drawOval((int)xM, (int)yM,0,0);
+				
+					// draw contour, if requested
+					if (this.showBorders && m.getShape() != null) {
+						MTBBorder2D border = m.getShape().getOutline();
+//						if (!m.isActive()) {
+//							g2.setColor(Color.LIGHT_GRAY);
+//						}
+//						else {
+//							g2.setColor(defColor);
+//						}
+						for (int j=0; j<border.getPointNum(); ++j) {
+							Point2D.Double p = border.getPointAt(j);
+							xM = ((p.getX()-this.srcRect.x)*this.magnification);
+							yM = ((p.getY()-this.srcRect.y)*this.magnification);
+							g2.drawOval((int)xM, (int)yM,0,0);
+						}
 					}
 				}
 			}

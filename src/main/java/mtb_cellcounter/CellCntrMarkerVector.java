@@ -77,14 +77,14 @@ public class CellCntrMarkerVector extends Vector<CellCntrMarker> {
 	 */
 	private Color color;
 
-	/**
-   * Set of presegmented set particle regions.
-   * <p>
-   * This set might be empty. Also not for each marker a region might be 
-   * available. Usually only for a subset of the first n markers regions are
-   * at best available.
-   */
-  private CellCntrSegResult segmentationData = null;
+//	/**
+//   * Set of presegmented set particle regions.
+//   * <p>
+//   * This set might be empty. Also not for each marker a region might be 
+//   * available. Usually only for a subset of the first n markers regions are
+//   * at best available.
+//   */
+//  private CellCntrSegResult segmentationData = null;
 
 	/** 
 	 * Creates a new instance of MarkerVector.
@@ -128,10 +128,10 @@ public class CellCntrMarkerVector extends Vector<CellCntrMarker> {
 	 */
 	public void removeMarker(int n){
 		remove(n);
-		// if segmentation data is given for the marker remove it, too 
-		if (   this.segmentationData != null 
-				&& n < this.segmentationData.getBorderCount())
-			this.segmentationData.removeItem(n);
+//		// if segmentation data is given for the marker remove it, too 
+//		if (   this.segmentationData != null 
+//				&& n < this.segmentationData.getBorderCount())
+//			this.segmentationData.removeItem(n);
 	}
 	
 	/**
@@ -143,17 +143,22 @@ public class CellCntrMarkerVector extends Vector<CellCntrMarker> {
 		// only remove the last marker if there is at least one marker in the list
 		if (this.size()>0)
 			super.removeElementAt(size()-1);
-		// if there is segmentation data available for the marker remove it, too 
-		if (   this.segmentationData != null 
-				&& originalSize <= this.segmentationData.getBorderCount())
-			this.segmentationData.removeLastItem();
+//		// if there is segmentation data available for the marker remove it, too 
+//		if (   this.segmentationData != null 
+//				&& originalSize <= this.segmentationData.getBorderCount())
+//			this.segmentationData.removeLastItem();
 	}
 
 	/**
-	 * Delete segmentation data during reset of vector.
+	 * Delete shape data during reset of vector.
 	 */
-	public void clearRegions() {
-		this.segmentationData = null;
+	public void clearShapeData() {
+//		this.segmentationData = null;
+		ListIterator<CellCntrMarker> it = this.listIterator();
+		while(it.hasNext()){
+			CellCntrMarker m = it.next();
+			m.resetShape();
+		}
 	}
 	
 //	private boolean isCloser(CellCntrMarker m1,CellCntrMarker m2, Point p){
@@ -219,21 +224,35 @@ public class CellCntrMarkerVector extends Vector<CellCntrMarker> {
 		this.color = color;
 	}
 	
+	/**
+	 * Check if there is shape data available.
+	 * @return	True if at least for one marker shape data is available.
+	 */
+	public boolean shapeDataAvailable() {
+		boolean dataFound = false;
+		ListIterator<CellCntrMarker> it = this.listIterator();
+		while(it.hasNext() && !dataFound) {
+			if (it.next().getShape() != null)
+				dataFound = true;
+		}
+		return dataFound;
+	}
+	
   /**
    * Get the current (pre-)segmentation data.
    * @return	Segmentation data, might be null.
    */
-  public CellCntrSegResult getSegmentationData() {
-  	return this.segmentationData;
-  }
+//  public CellCntrSegResult getSegmentationData() {
+//  	return this.segmentationData;
+//  }
   
   /**
    * Set (pre-)segmentation data.
    * @param p		Segmentation data to attach to this marker set.
    */
-  public void setSegmentationData(CellCntrSegResult p) {
-  	this.segmentationData = p;
-  }
+//  public void setSegmentationData(CellCntrSegResult p) {
+//  	this.segmentationData = p;
+//  }
   
 	/**
 	 * Returns a marker color according to given type ID.
