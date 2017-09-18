@@ -162,7 +162,7 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 
 		// slider for minimal threshold
 		this.minSlider = new JScrollBar(Scrollbar.HORIZONTAL, 
-			(int)(dataRange/3.0)+this.minValue,	 1, this.minValue, this.maxValue+1);
+			(int)(this.dataRange/3.0)+this.minValue,	 1, this.minValue, this.maxValue+1);
 		c.gridx = 0;
 		c.gridy = y++;
 		c.gridwidth = 1;
@@ -188,7 +188,7 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 		
 		// slider for maximal threshold
 		this.maxSlider = new JScrollBar(Scrollbar.HORIZONTAL, 
-			(int)(dataRange*2/3)+this.minValue,	1, this.minValue, this.maxValue+1);
+			this.dataRange*2/3+this.minValue,	1, this.minValue, this.maxValue+1);
 		c.gridx = 0;
 		c.gridy = y++;
 		c.gridwidth = 1;
@@ -225,7 +225,7 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 	public void setData(int[] data, int minVal, int maxVal) {
 		this.minValue = minVal;
 		this.maxValue = maxVal;
-		this.dataRange = (int)(this.maxValue-this.minValue);		
+		this.dataRange = this.maxValue-this.minValue;		
 		this.currentSliderMinValue = this.minValue;
 		this.currentSliderMaxValue = this.maxValue;
 		if (this.minSlider != null) {
@@ -255,9 +255,9 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 	 */
 	private void updatePlot() {
 		this.plot.setMinThreshold(
-			(double)(this.currentSliderMinValue-this.minValue)/(double)dataRange);
+			(double)(this.currentSliderMinValue-this.minValue)/(double)this.dataRange);
 		this.plot.setMaxThreshold(
-			(double)(this.currentSliderMaxValue-this.minValue)/(double)dataRange);
+			(double)(this.currentSliderMaxValue-this.minValue)/(double)this.dataRange);
 		this.plot.repaint();
 	}
 
@@ -456,7 +456,7 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 		
 		/**
 		 * Get maximal count in histogram.
-		 * @return
+		 * @return	Maximal entry in histogram.
 		 */
 		public int getPeakEntry() {
 			return this.peakEntry;
@@ -540,8 +540,8 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 		 */
 		void setHistogram(PlotHistogram histo) {
 			this.histogram = histo.getData();
-			this.minVal = (int)histo.getMinEntry();
-			this.maxVal = (int)histo.getMaxEntry();
+			this.minVal = histo.getMinEntry();
+			this.maxVal = histo.getMaxEntry();
 			this.currentMinThreshold = 0.0;
 			this.currentMaxThreshold = 1.0;
 			this.hmax = histo.getPeakEntry();
@@ -559,7 +559,7 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 		
 		/**
 		 * New maximal threshold
-		 * @param minT	New relative threshold in interval [0,1].
+		 * @param maxT	New relative threshold in interval [0,1].
 		 */
 		void setMaxThreshold(double maxT) {
 			this.currentMaxThreshold = maxT;
