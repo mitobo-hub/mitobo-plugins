@@ -203,6 +203,6 @@ public class CellCntrMarker {
      * Set marker inactive.
      */
     public void setInactive() {
-    	this.isActive = true;
+    	this.isActive = false;
     }
 }
