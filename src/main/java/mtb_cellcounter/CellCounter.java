@@ -104,7 +104,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EtchedBorder;
@@ -220,10 +223,6 @@ public class CellCounter extends JFrame
 	private CellCntrMarkerVector markerVector;
 	protected CellCntrMarkerVector currentMarkerVector;
 
-	protected int plastidMarkerIndex = -1;
-	protected int stromuliMarkerIndex = -1;
-	protected int stomataMarkerIndex = -1;
-	
 	protected JPanel dynPanel;
 	protected JPanel dynButtonPanel;
 	protected JPanel statButtonPanel;
@@ -236,10 +235,17 @@ public class CellCounter extends JFrame
 	protected JCheckBox showAllCheck;
 	// checkbox to enable/disable plastid detection
 	protected JCheckBox cbDetectPlastids;
+	protected JSpinner spTypePlastids;
+	protected SpinnerNumberModel spmTypePlastids;
 	// checkbox to enable/disable stromuli detection
 	protected JCheckBox cbDetectStromuli;
+	protected JSpinner spTypeStromuli;
+	protected SpinnerNumberModel spmTypeStromuli;
 	// checkbox to enable/disable stomata detection
 	protected JCheckBox cbDetectStomata;
+	protected JSpinner spTypeStomata;
+	protected SpinnerNumberModel spmTypeStomata;
+
 	protected ButtonGroup radioGrp;
 	protected ButtonGroup channelGrp;
 	protected JRadioButton ch1Button;
@@ -458,6 +464,26 @@ public class CellCounter extends JFrame
 		gb.setConstraints(this.newCheck,gbc);
 		this.statButtonPanel.add(this.newCheck);
 
+		gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.NORTHWEST;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridx=0;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		this.initializeButton = makeButton(INITIALIZE, "Initialize image to count");
+		gb.setConstraints(this.initializeButton,gbc);
+		this.statButtonPanel.add(this.initializeButton);
+
+		gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.NORTHWEST;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridx=0;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbc.insets = new Insets(3,0,3,0);
+		this.separator = new JSeparator(SwingConstants.HORIZONTAL);
+		this.separator.setPreferredSize(new Dimension(1,1));
+		gb.setConstraints(this.separator,gbc);
+		this.statButtonPanel.add(this.separator);
+
 		// add radio buttons to select channel to process
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
@@ -501,15 +527,6 @@ public class CellCounter extends JFrame
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridx=0;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		this.initializeButton = makeButton(INITIALIZE, "Initialize image to count");
-		gb.setConstraints(this.initializeButton,gbc);
-		this.statButtonPanel.add(this.initializeButton);
-
-		gbc = new GridBagConstraints();
-		gbc.anchor = GridBagConstraints.NORTHWEST;
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.gridx=0;
-		gbc.gridwidth = GridBagConstraints.REMAINDER;
 		gbc.insets = new Insets(3,0,3,0);
 		this.separator = new JSeparator(SwingConstants.HORIZONTAL);
 		this.separator.setPreferredSize(new Dimension(1,1));
@@ -519,6 +536,9 @@ public class CellCounter extends JFrame
 		/*
 		 * Which objects to detect?
 		 */
+		
+		int typeCount = this.dynRadioVector.size();
+		
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		gbc.fill = GridBagConstraints.BOTH;
@@ -533,36 +553,57 @@ public class CellCounter extends JFrame
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridx=0;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		JPanel plPanel = new JPanel();
 		this.cbDetectPlastids = new JCheckBox(DETECTPLASTIDS);
 		this.cbDetectPlastids.setToolTipText("Enable/disable plastid detection");
 		this.cbDetectPlastids.setSelected(true);
 		this.cbDetectPlastids.addItemListener(this);
-		gb.setConstraints(this.cbDetectPlastids, gbc);
-		this.statButtonPanel.add(this.cbDetectPlastids);
+		JLabel plLabel = new JLabel(", Type: ");
+		this.spmTypePlastids = new SpinnerNumberModel(1, 1, typeCount, 1);
+		this.spTypePlastids = new JSpinner(this.spmTypePlastids);
+		gb.setConstraints(plPanel, gbc);
+		plPanel.add(this.cbDetectPlastids);
+		plPanel.add(plLabel);
+		plPanel.add(this.spTypePlastids);
+		this.statButtonPanel.add(plPanel);
 
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridx=0;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		plPanel = new JPanel();
 		this.cbDetectStromuli = new JCheckBox(DETECTSTROMULI);
 		this.cbDetectStromuli.setToolTipText("Enable/disable stromuli detection");
 		this.cbDetectStromuli.setSelected(false);
 		this.cbDetectStromuli.addItemListener(this);
-		gb.setConstraints(this.cbDetectStromuli, gbc);
-		this.statButtonPanel.add(this.cbDetectStromuli);
+		plLabel = new JLabel(", Type: ");
+		this.spmTypeStromuli = new SpinnerNumberModel(2, 1, typeCount, 1);
+		this.spTypeStromuli = new JSpinner(this.spmTypeStromuli);
+		gb.setConstraints(plPanel, gbc);
+		plPanel.add(this.cbDetectStromuli);
+		plPanel.add(plLabel);
+		plPanel.add(this.spTypeStromuli);
+		this.statButtonPanel.add(plPanel);
 
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridx=0;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		plPanel = new JPanel();
 		this.cbDetectStomata = new JCheckBox(DETECTSTOMATA);
 		this.cbDetectStomata.setToolTipText("Enable/disable stomata detection");
 		this.cbDetectStomata.setSelected(false);
 		this.cbDetectStomata.addItemListener(this);
-		gb.setConstraints(this.cbDetectStomata, gbc);
-		this.statButtonPanel.add(this.cbDetectStomata);
+		plLabel = new JLabel(", Type: ");
+		this.spmTypeStomata = new SpinnerNumberModel(3, 1, typeCount, 1);
+		this.spTypeStomata = new JSpinner(this.spmTypeStomata);
+		gb.setConstraints(plPanel, gbc);
+		plPanel.add(this.cbDetectStomata);
+		plPanel.add(plLabel);
+		plPanel.add(this.spTypeStomata);
+		this.statButtonPanel.add(plPanel);
 
 		/*
 		 * Initial object detection.
@@ -1088,12 +1129,24 @@ public class CellCounter extends JFrame
   public void actionPerformed(ActionEvent event) {
 		String command = event.getActionCommand();
 
+		int plastidMarkerIndex = 
+				((Integer)this.spmTypePlastids.getValue()).intValue() - 1;
+		int typeStromuli = 
+				((Integer)this.spmTypeStromuli.getValue()).intValue() - 1;
+		int typeStomata = 
+				((Integer)this.spmTypeStomata.getValue()).intValue() - 1;
+
 		// add another type of marker
 		if (command.compareTo(ADD) == 0) {
 			int i = this.dynRadioVector.size() + 1;
 			this.dynGrid.setRows(i);
 			this.dynButtonPanel.add(makeDynRadioButton(i,null));
 			validateLayout();
+			
+			// update spinners
+			this.spmTypePlastids.setMaximum(new Integer(i));
+			this.spmTypeStromuli.setMaximum(new Integer(i));
+			this.spmTypeStomata.setMaximum(new Integer(i));
 			
 			if (this.ic != null)
 				this.ic.setTypeVector(this.typeVector);
@@ -1122,6 +1175,25 @@ public class CellCounter extends JFrame
 				this.dynColorChooserVector.removeElementAt(
 						this.dynColorChooserVector.size()-1);
 			}
+			// update spinners
+			Integer maxValue = new Integer(this.dynColorChooserVector.size());
+			this.spmTypePlastids.setMaximum(maxValue);
+			if (  ((Integer)this.spmTypePlastids.getValue()).intValue() 
+					> maxValue.intValue()) 
+				this.spmTypePlastids.setValue(maxValue);
+			
+			this.spmTypeStromuli.setMaximum(
+					new Integer(this.dynColorChooserVector.size()));
+			if (  ((Integer)this.spmTypeStromuli.getValue()).intValue() 
+					> maxValue.intValue()) 
+				this.spmTypeStromuli.setValue(maxValue);
+			
+			this.spmTypeStomata.setMaximum(
+					new Integer(this.dynColorChooserVector.size()));
+			if (  ((Integer)this.spmTypeStomata.getValue()).intValue() 
+					> maxValue.intValue()) 
+				this.spmTypeStomata.setValue(maxValue);
+
 			validateLayout();
 
 			if (this.ic != null)
@@ -1208,17 +1280,23 @@ public class CellCounter extends JFrame
 				IJ.error("You need to initialize first");
 				return;
 			}
-			// warning that markers of types 1, 2 and 3 will be lost!
-			if (this.typeVector.elementAt(0).size() > 0) {
-				String typeInfo = "1";
+			// warning that some markers may get lost!
+			if (this.typeVector.elementAt(plastidMarkerIndex).size() > 0) {
+				String typeInfo = ((Integer)this.spmTypePlastids.getValue()).toString();
+				int stomataMarkerIndex = 
+					(((Integer)this.spTypeStomata.getModel().getValue()).intValue()-1);
 				if (   this.cbDetectStomata.isEnabled() 
 						&& this.cbDetectStomata.isSelected() 
-						&& this.typeVector.elementAt(this.stomataMarkerIndex).size() > 0)
-					typeInfo += ", " + this.stomataMarkerIndex;
+						&& this.typeVector.elementAt(stomataMarkerIndex).size() > 0)
+					typeInfo 
+						+= ", " + ((Integer)this.spmTypeStomata.getValue()).toString();
+				int stromuliMarkerIndex = 
+						(((Integer)this.spTypeStromuli.getModel().getValue()).intValue()-1);
 				if (   this.cbDetectStromuli.isEnabled() 
 						&& this.cbDetectStromuli.isSelected() 
-						&& this.typeVector.elementAt(this.stromuliMarkerIndex).size() > 0)
-					typeInfo += ", " + this.stromuliMarkerIndex;
+						&& this.typeVector.elementAt(stromuliMarkerIndex).size() > 0)
+					typeInfo 
+						+= ", " + ((Integer)this.spmTypeStromuli.getValue()).toString();
 				Object[] options = {"Continue", "Cancel"};
 				int n = JOptionPane.showOptionDialog(null,
 						"Attention, your markers of type(s) " + typeInfo + " will be lost!",
@@ -1234,18 +1312,19 @@ public class CellCounter extends JFrame
 			this.detectMode = true;
 			this.ic.setEditable(false);
 			// delete markers in GUI
-			this.typeVector.setElementAt(new CellCntrMarkerVector(1), 0);
-			int id = 1;
+			this.typeVector.setElementAt(
+					new CellCntrMarkerVector(plastidMarkerIndex+1), plastidMarkerIndex);
 			// stomata are to be detected, reset another marker type
 			if (   this.cbDetectStomata.isEnabled() 
 					&& this.cbDetectStomata.isSelected()) {
-				this.typeVector.setElementAt(new CellCntrMarkerVector(2), id);
-				++id;
+				this.typeVector.setElementAt(
+						new CellCntrMarkerVector(typeStomata+1), typeStomata);
 			}
 			// stromuli are to be detected, reset another marker type
 			if (   this.cbDetectStromuli.isEnabled() 
 					&& this.cbDetectStromuli.isSelected()) {
-				this.typeVector.setElementAt(new CellCntrMarkerVector(3), id);
+				this.typeVector.setElementAt(
+						new CellCntrMarkerVector(typeStromuli+1), typeStromuli);
 			}
 			if (this.ic!=null)
 				this.ic.repaint();	
@@ -1269,8 +1348,8 @@ public class CellCounter extends JFrame
 				return;				
 			}				
 			if (this.pFilter == null) {
-				CellCntrMarkerVector pVec = CellCounter.this.typeVector.get(
-						CellCounter.this.plastidMarkerIndex);
+				CellCntrMarkerVector pVec = 
+					CellCounter.this.typeVector.get(plastidMarkerIndex);
 				this.pFilter = new ParticleFilterFrame(this, pVec, this.detectImg);
 			}
 //			else {
@@ -1991,13 +2070,13 @@ public class CellCounter extends JFrame
 //							CellCounter.this.detectImg,	stomata);
 //				}
 
-				int markerIndex = 0;
-				
 				// draw detected particles
 				if (particles != null) {
-					CellCounter.this.plastidMarkerIndex = markerIndex;
+					int plastidMarkerIndex = 
+						(((Integer)CellCounter.this.spTypePlastids.getModel().getValue())
+								.intValue()-1);
 					CellCounter.this.currentMarkerVector =
-							CellCounter.this.typeVector.get(markerIndex);
+							CellCounter.this.typeVector.get(plastidMarkerIndex);
 //					CellCounter.this.currentMarkerVector.setSegmentationData(res);
 					for (int i=0; i<particles.size(); ++i) {
 						MTBRegion2D reg = particles.elementAt(i);
@@ -2020,7 +2099,7 @@ public class CellCounter extends JFrame
 					try {
 						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
 								Color.class, 
-								CellCounter.this.dynColorChooserVector.get(markerIndex));
+								CellCounter.this.dynColorChooserVector.get(plastidMarkerIndex));
 						CellCounter.this.currentMarkerVector.setColor(cc);
 					} catch (ALDDataIOException e) {
 						IJ.error("Setting color failed!");
@@ -2031,10 +2110,11 @@ public class CellCounter extends JFrame
 				
 				// draw detected stomata
 				if (stomata != null) {
-					++markerIndex;
-					CellCounter.this.stomataMarkerIndex = markerIndex;
+					int stomataMarkerIndex = 
+						(((Integer)CellCounter.this.spTypeStomata.getModel().getValue())
+								.intValue()-1);
 					CellCounter.this.currentMarkerVector =
-							CellCounter.this.typeVector.get(markerIndex);
+							CellCounter.this.typeVector.get(stomataMarkerIndex);
 //					CellCounter.this.currentMarkerVector.setSegmentationData(
 //							resStomata);
 					for (int i=0; i<stomata.size(); ++i) {
@@ -2048,7 +2128,7 @@ public class CellCounter extends JFrame
 					try {
 						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(
 								null,	Color.class, 
-								CellCounter.this.dynColorChooserVector.get(markerIndex));
+								CellCounter.this.dynColorChooserVector.get(stomataMarkerIndex));
 						CellCounter.this.currentMarkerVector.setColor(cc);
 					} catch (ALDDataIOException e) {
 						IJ.error("Setting color failed!");
@@ -2058,11 +2138,12 @@ public class CellCounter extends JFrame
 				}
 
 				// draw detected stromulis
+				int stromuliMarkerIndex = 
+						(((Integer)CellCounter.this.spTypeStromuli.getModel().getValue())
+								.intValue()-1);
 				if (stromuli != null) {
-					++markerIndex;
-					CellCounter.this.stromuliMarkerIndex = markerIndex;
 					CellCounter.this.currentMarkerVector =
-							CellCounter.this.typeVector.get(markerIndex);
+							CellCounter.this.typeVector.get(stromuliMarkerIndex);
 //					CellCounter.this.currentMarkerVector.setSegmentationData(
 //							resStromuli);
 					for (int i=0; i<stromuli.size(); ++i) {
@@ -2076,7 +2157,7 @@ public class CellCounter extends JFrame
 					try {
 						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(
 								null,	Color.class, 
-								CellCounter.this.dynColorChooserVector.get(markerIndex));
+								CellCounter.this.dynColorChooserVector.get(stromuliMarkerIndex));
 						CellCounter.this.currentMarkerVector.setColor(cc);
 					} catch (ALDDataIOException e) {
 						IJ.error("Setting color failed!");
@@ -2086,7 +2167,7 @@ public class CellCounter extends JFrame
 				}
 				
 				// update GUI
-				CellCounter.this.dynRadioVector.elementAt(markerIndex).
+				CellCounter.this.dynRadioVector.elementAt(stromuliMarkerIndex).
 					setSelected(true);
 				CellCounter.this.selectButton.setEnabled(true);
 				if (CellCounter.this.ic!=null)
