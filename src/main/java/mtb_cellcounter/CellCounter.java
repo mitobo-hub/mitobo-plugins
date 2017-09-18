@@ -1020,31 +1020,7 @@ public class CellCounter extends JFrame
 		reset();
 		this.img = WindowManager.getCurrentImage();
 		this.img.setIgnoreFlush(true);
-		// check number of channels and choose selected one
-		MTBImage tmpImage = MTBImage.createMTBImage(this.img);
-		int selectedChannel = 1;
-		if (this.ch1Button.isSelected())
-			selectedChannel = 1;
-		else if (this.ch2Button.isSelected())
-			selectedChannel = 2;
-		else if (this.ch3Button.isSelected())
-			selectedChannel = 3;
-		else
-			selectedChannel = 4;
-		if (tmpImage.getSizeC() < selectedChannel)
-			JOptionPane.showMessageDialog(CellCounter.this.getFocusOwner(), 
-					"Input image has only " + tmpImage.getSizeC() + " channel(s),"
-					+ "\n please select another one!");
 
-		// initialize detection image with byte image
-		this.detectImg = tmpImage.getImagePart(0, 0, 0, 0, 
-				selectedChannel-1, tmpImage.getSizeX(), tmpImage.getSizeY(), 
-				1, 1, 1);
-		this.detectChannel = selectedChannel;
-		if (!this.detectImg.getType().equals(MTBImageType.MTB_BYTE)) {
-			this.detectImg = 
-					this.detectImg.convertType(MTBImageType.MTB_BYTE, true);
-		}
 		boolean v139t = IJ.getVersion().compareTo("1.39t")>=0;
 		if (this.img==null){
 			IJ.noImage();
@@ -1271,15 +1247,41 @@ public class CellCounter extends JFrame
 				IJ.error("An error occurred during detection!");
 				return;
 			}
-			if (state.equals(ALDWorkflowNodeState.READY)) {
-				JOptionPane.showMessageDialog(CellCounter.this.getFocusOwner(), 
-						"Particles already detected with current configuration!");
-				return;
-			}
+//			if (state.equals(ALDWorkflowNodeState.READY)) {
+//				JOptionPane.showMessageDialog(CellCounter.this.getFocusOwner(), 
+//						"Particles already detected with current configuration!");
+//				return;
+//			}
 			if (this.ic == null){
 				IJ.error("You need to initialize first");
 				return;
 			}
+			
+			// check number of channels and choose selected one
+			MTBImage tmpImage = MTBImage.createMTBImage(this.img);
+			int selectedChannel = 1;
+			if (this.ch1Button.isSelected())
+				selectedChannel = 1;
+			else if (this.ch2Button.isSelected())
+				selectedChannel = 2;
+			else if (this.ch3Button.isSelected())
+				selectedChannel = 3;
+			else
+				selectedChannel = 4;
+			if (tmpImage.getSizeZ() < selectedChannel)
+				JOptionPane.showMessageDialog(CellCounter.this.getFocusOwner(), 
+						"Input image has only " + tmpImage.getSizeZ() + " channel(s),"
+						+ "\n please select another one!");
+
+			// initialize detection image with byte image
+			this.detectImg = tmpImage.getImagePart(0, 0, selectedChannel-1, 0, 0, 
+					tmpImage.getSizeX(), tmpImage.getSizeY(),	1, 1, 1);
+			this.detectChannel = selectedChannel;
+			if (!this.detectImg.getType().equals(MTBImageType.MTB_BYTE)) {
+				this.detectImg = 
+						this.detectImg.convertType(MTBImageType.MTB_BYTE, true);
+			}
+
 			// warning that some markers may get lost!
 			if (this.typeVector.elementAt(plastidMarkerIndex).size() > 0) {
 				String typeInfo = ((Integer)this.spmTypePlastids.getValue()).toString();
