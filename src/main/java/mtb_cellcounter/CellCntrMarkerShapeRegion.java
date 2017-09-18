@@ -22,7 +22,6 @@
 
 package mtb_cellcounter;
 
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 
 /**
@@ -30,7 +29,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
  *
  * @author Birgit Moeller
  */
-public class CellCntrMarkerShapeRegion implements CellCntrMarkerShape {
+public class CellCntrMarkerShapeRegion extends CellCntrMarkerShape {
 	
 	/**
 	 * Region object representing the shape of the marker.
@@ -57,6 +56,11 @@ public class CellCntrMarkerShapeRegion implements CellCntrMarkerShape {
 	 */
 	public CellCntrMarkerShapeRegion(MTBRegion2D r) {
 		this.mRegion = r;
+		try {
+			this.mBorder = this.mRegion.getBorder();
+		} catch (Exception e) {
+			System.err.println("Something went wrong extracting the border...");
+		}
 	}
 	
 	/**
@@ -82,15 +86,4 @@ public class CellCntrMarkerShapeRegion implements CellCntrMarkerShape {
 	public double getAvgIntensity() {
 		return this.avgIntensity;
 	}
-	
-	@Override
-	public MTBBorder2D getOutline() {
-		try {
-			return this.mRegion.getBorder();
-		} catch (Exception e) {
-			System.err.println("Something went wrong extracting the border...");
-			return null;
-		}
-	}
-
 }

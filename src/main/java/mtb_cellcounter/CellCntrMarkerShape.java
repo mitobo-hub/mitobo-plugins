@@ -32,16 +32,19 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
  *
  * @author Birgit Moeller
  */
-public interface CellCntrMarkerShape {
+public abstract class CellCntrMarkerShape {
 	
-	/*
-	 * Interface class without functionality. 
+	/**
+	 * Border of the object.
 	 */
+	protected MTBBorder2D mBorder = null;
 	
 	/**
 	 * Get outline of shape.
-	 * @return	Outline of shape.
+	 * @return	Outline of shape, null if not available.
 	 */
-	public abstract MTBBorder2D getOutline();
+	public MTBBorder2D getOutline() {
+		return this.mBorder;
+	}
 	
 }

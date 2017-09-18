@@ -34,7 +34,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBQuadraticCurve2D;
  *
  * @author Birgit Moeller
  */
-public class CellCntrMarkerShapeCurve implements CellCntrMarkerShape {
+public class CellCntrMarkerShapeCurve extends CellCntrMarkerShape {
 	
 	/**
 	 * Curve object representing the shape of the marker.
@@ -56,11 +56,7 @@ public class CellCntrMarkerShapeCurve implements CellCntrMarkerShape {
 	 */
 	public CellCntrMarkerShapeCurve(MTBQuadraticCurve2D c) {
 		this.mCurve = c;
-	}
-	
-	@Override
-	public MTBBorder2D getOutline() {
-		
+
 		// get ellipse parameters
 		double major = this.mCurve.getSemiLengthAxisA();
 		double minor = this.mCurve.getSemiLengthAxisB();
@@ -81,6 +77,6 @@ public class CellCntrMarkerShapeCurve implements CellCntrMarkerShape {
 			int ry = (int)(Math.sin(trad)*x + Math.cos(trad)*y + yCenter);
 			bps.add(new Point2D.Double(rx,ry));
 		}
-		return new MTBBorder2D(bps, BorderConnectivity.CONNECTED_8);
+		this.mBorder = new MTBBorder2D(bps, BorderConnectivity.CONNECTED_8);
 	}
 }
