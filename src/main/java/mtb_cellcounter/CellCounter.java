@@ -1374,35 +1374,30 @@ public class CellCounter extends JFrame
 		else if (command.compareTo(SELECT) == 0) {
 			this.detectMode = false;
 			this.ic.setEditable(true);
-			CellCntrMarkerVector oldVec = this.typeVector.elementAt(0);
-			CellCntrMarkerVector newVec = new CellCntrMarkerVector(1);
-      try {
-        Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
-        		Color.class, this.dynColorChooserVector.get(0));
-	      newVec.setColor(cc);
-      } catch (ALDDataIOException e) {
-      	// nothing to do here, simply skip color setting...
-      }
-//			MTBRegion2DSet regs = new MTBRegion2DSet();
-//			MTBBorder2DSet borders = new MTBBorder2DSet();
-//			Vector<Double> avgIntensities = new Vector<Double>();
-//			CellCntrSegResultRegions oldSeg = 
-//					(CellCntrSegResultRegions)oldVec.getSegmentationData();
+			for (int i=0; i<this.typeVector.size(); ++i) {
+				CellCntrMarkerVector oldVec = this.typeVector.elementAt(i);
+				CellCntrMarkerVector newVec = 
+						new CellCntrMarkerVector(oldVec.getType());
+				try {
+					Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
+							Color.class, this.dynColorChooserVector.get(i));
+					newVec.setColor(cc);
+				} catch (ALDDataIOException e) {
+					// nothing to do here, simply skip color setting...
+				}
       
-      // copy only active markers
-			for (int i=0; i<oldVec.size(); ++i) {
-				if (oldVec.elementAt(i).isActive()) {
-					newVec.add(oldVec.elementAt(i));
+				// copy only active markers
+				for (CellCntrMarker c: oldVec) {
+					if (c.isActive()) {
+						newVec.add(c);
+					}
+				}
+				this.typeVector.setElementAt(newVec, i);
+				if (this.dynRadioVector.elementAt(i).isSelected()) {
+					this.currentMarkerVector = newVec;
 				}
 			}
-//			CellCntrSegResultRegions newRes = 
-//					new CellCntrSegResultRegions(
-//							this.detectImg, regs, borders, avgIntensities);
-//			newVec.setSegmentationData(newRes);
-			this.typeVector.setElementAt(newVec, 0);
-			this.dynRadioVector.elementAt(0).setSelected(true);
-			this.currentMarkerVector = newVec;
-			this.ic.setCurrentMarkerVector(newVec);
+			this.ic.setCurrentMarkerVector(this.currentMarkerVector);
 //			boolean v139t = IJ.getVersion().compareTo("1.39t")>=0;
 //			Vector displayList = v139t?this.img.getCanvas().getDisplayList():null;
 //			this.ic.setImage(this.detectImg.getImagePlus(),displayList);
