@@ -111,6 +111,8 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
@@ -159,7 +161,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType
  * @author Birgit Moeller
  */
 public class CellCounter extends JFrame 
-	implements ActionListener, ItemListener, DocumentListener, 
+	implements ActionListener, ChangeListener, ItemListener, DocumentListener, 
 		StatusReporter, StatusListener, ALDSwingValueChangeListener {
 	
 	/*
@@ -284,7 +286,10 @@ public class CellCounter extends JFrame
 	 * Copy of input image used for pre-segmentation of regions.
 	 */
 	protected MTBImage detectImg;
-	protected int detectChannel;
+	/**
+	 * Z-coordinate of currently selected slice, starting with 1 (!).
+	 */
+	protected int detectZSlice;
 
 	private GridLayout dynGrid;
 	
@@ -561,6 +566,7 @@ public class CellCounter extends JFrame
 		JLabel plLabel = new JLabel(", Type: ");
 		this.spmTypePlastids = new SpinnerNumberModel(1, 1, typeCount, 1);
 		this.spTypePlastids = new JSpinner(this.spmTypePlastids);
+		this.spTypePlastids.addChangeListener(this);
 		gb.setConstraints(plPanel, gbc);
 		plPanel.add(this.cbDetectPlastids);
 		plPanel.add(plLabel);
@@ -1276,7 +1282,7 @@ public class CellCounter extends JFrame
 			// initialize detection image with byte image
 			this.detectImg = tmpImage.getImagePart(0, 0, selectedChannel-1, 0, 0, 
 					tmpImage.getSizeX(), tmpImage.getSizeY(),	1, 1, 1);
-			this.detectChannel = selectedChannel;
+			this.detectZSlice = selectedChannel;
 			if (!this.detectImg.getType().equals(MTBImageType.MTB_BYTE)) {
 				this.detectImg = 
 						this.detectImg.convertType(MTBImageType.MTB_BYTE, true);
@@ -1349,15 +1355,15 @@ public class CellCounter extends JFrame
 						null, options, options[0]);
 				return;				
 			}				
+			CellCntrMarkerVector pVec = 
+				CellCounter.this.typeVector.get(plastidMarkerIndex);
 			if (this.pFilter == null) {
-				CellCntrMarkerVector pVec = 
-					CellCounter.this.typeVector.get(plastidMarkerIndex);
-				this.pFilter = new ParticleFilterFrame(this, pVec, this.detectImg);
+				this.pFilter = new ParticleFilterFrame(this, pVec, 
+						this.detectImg, this.detectZSlice);
 			}
-//			else {
-//				this.pFilter.setRegions(this.currentMarkerVector.getDetectedRegions());
-//				this.pFilter.setup(this.currentMarkerVector.getDetectedRegions());
-//			}
+			else {
+				this.pFilter.updateMarkerData(pVec, this.detectImg, this.detectZSlice);
+			}
 			this.pFilter.setVisible(true);
 		}
 		// update borders
@@ -1402,9 +1408,36 @@ public class CellCounter extends JFrame
 //			this.ic.setImage(this.detectImg.getImagePlus(),displayList);
 			this.disableDetectMode();
 		}
+		
 		if (this.ic!=null)
 			this.ic.repaint();
 		populateTxtFields();
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		if (e.getSource().equals(this.spTypePlastids)) {
+			if (this.pFilter != null) {
+				SpinnerModel m = ((JSpinner)e.getSource()).getModel();
+				int selectedPlastids = ((Integer)m.getValue()).intValue();
+				CellCntrMarkerVector pVec = 
+						CellCounter.this.typeVector.get(selectedPlastids-1);
+
+				MTBImage tmpImage = MTBImage.createMTBImage(this.img);
+				if (tmpImage.getSizeZ() < this.detectZSlice)
+					return;
+
+				// initialize detection image with byte image
+				this.detectZSlice = pVec.get(0).getZ();
+				this.detectImg = tmpImage.getImagePart(0, 0, this.detectZSlice-1, 0, 0, 
+						tmpImage.getSizeX(), tmpImage.getSizeY(),	1, 1, 1);
+				if (!this.detectImg.getType().equals(MTBImageType.MTB_BYTE)) {
+					this.detectImg = 
+							this.detectImg.convertType(MTBImageType.MTB_BYTE, true);
+				}
+				this.pFilter.updateMarkerData(pVec, this.detectImg, this.detectZSlice);
+			}
+		}
 	}
 
 	@Override
@@ -2084,19 +2117,21 @@ public class CellCounter extends JFrame
 						MTBRegion2D reg = particles.elementAt(i);
 						CellCntrMarker marker = new CellCntrMarker(
 							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
-								CellCounter.this.detectChannel, 
+								CellCounter.this.detectZSlice, 
 									new CellCntrMarkerShapeRegion(particles.get(i)));
 						CellCounter.this.currentMarkerVector.add(marker);
 					}
 					if (CellCounter.this.pFilter != null) {
 						ParticleFilterFrame.filterMarkerRegions(
 							CellCounter.this.currentMarkerVector, 
+							CellCounter.this.detectZSlice,
 								CellCounter.this.pFilter.getMinSizeValue(),
 									CellCounter.this.pFilter.getMaxSizeValue(),
 										CellCounter.this.pFilter.getMinIntensityValue(),
 											CellCounter.this.pFilter.getMaxIntensityValue());
 						CellCounter.this.pFilter.updateMarkerData(
-							CellCounter.this.currentMarkerVector, CellCounter.this.detectImg);
+							CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
+								CellCounter.this.detectZSlice);
 					}
 					try {
 						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
@@ -2123,7 +2158,7 @@ public class CellCounter extends JFrame
 						MTBQuadraticCurve2D reg = stomata.elementAt(i);
 						CellCntrMarker marker = new CellCntrMarker(
 							(int)reg.getCenterX(), (int)reg.getCenterY(),
-								CellCounter.this.detectChannel, 
+								CellCounter.this.detectZSlice, 
 									new CellCntrMarkerShapeCurve(reg));
 						CellCounter.this.currentMarkerVector.add(marker);
 					}
@@ -2152,7 +2187,7 @@ public class CellCounter extends JFrame
 						MTBRegion2D reg = stromuli.elementAt(i);
 						CellCntrMarker marker = new CellCntrMarker(
 							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
-								CellCounter.this.detectChannel, 
+								CellCounter.this.detectZSlice, 
 									new CellCntrMarkerShapeRegion(stromuli.get(i)));
 						CellCounter.this.currentMarkerVector.add(marker);
 					}

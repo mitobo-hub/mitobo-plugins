@@ -112,6 +112,11 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	private CellCntrMarkerVector currentMarkers;
 	
 	/**
+	 * Z index of current slice in stack.
+	 */
+	private int currentStackZ;
+	
+	/**
 	 * Size of biggest region in current segmentation.
 	 */
 	private int maxRegSize;
@@ -146,16 +151,17 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	 * @param counter		Reference to associated cell counter.
 	 * @param markers		Markers to filter.
 	 * @param image			Image from which segmentation data originates.
+	 * @param stackZ 		Coordinate of image in complete z-stack.
 	 */
 	public ParticleFilterFrame(CellCounter counter, 
-			CellCntrMarkerVector markers,	MTBImage image) {
+			CellCntrMarkerVector markers,	MTBImage image, int stackZ) {
 		super("Region Filter");
 		this.cc = counter;
 		this.ij = IJ.getInstance();
 		GridBagLayout gridbag = new GridBagLayout();
 		GridBagConstraints c = new GridBagConstraints();
 		setLayout(gridbag);
-		this.setMarkers(markers, image);
+		this.setMarkers(markers, image, stackZ);
 		
 		int y = 0;
 		this.panelFilterSize = 
@@ -210,10 +216,12 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	 * 
 	 * @param data		New data.
 	 * @param image		Image from where segmentation data originates.
+	 * @param stackZ 	Coordinate of image in complete z-stack.
 	 */
 	private void setMarkers(CellCntrMarkerVector data, 
-			MTBImage image) {
+			MTBImage image, int stackZ) {
 		this.currentMarkers = data;
+		this.currentStackZ = stackZ;
 		
 		MTBRegion2DSet markerRegions = new MTBRegion2DSet();
 		Iterator<CellCntrMarker> it = this.currentMarkers.iterator();
@@ -273,16 +281,18 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 			if (bin >= 0 && bin < 256)
 				this.histogramRegionIntensities[bin]++;
 		}
+		this.setTitle("Region Filter - Type " + this.currentMarkers.getType());
 	}		
 
 	/**
 	 * Update marker data.
-	 * @param data	New marker data.
-	 * @param image	New image.
+	 * @param data		New marker data.
+	 * @param image		New image.
+	 * @param stackZ 	Coordinate of image in complete z-stack.
 	 */
 	public void updateMarkerData(CellCntrMarkerVector data, 
-			MTBImage image) {
-		this.setMarkers(data, image);
+			MTBImage image, int stackZ) {
+		this.setMarkers(data, image, stackZ);
 		this.panelFilterSize.setData(this.histogramRegionSizes, 
 			this.minRegSize, this.maxRegSize);
 		this.panelFilterSize.updateGUI();
@@ -361,7 +371,7 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 			int minIntensity = this.panelFilterIntensity.getMinSliderValue();
 			int maxIntensity = this.panelFilterIntensity.getMaxSliderValue();
 			
-			filterMarkerRegions(this.currentMarkers, 
+			filterMarkerRegions(this.currentMarkers, this.currentStackZ,
 					minSize, maxSize, minIntensity, maxIntensity);
 			
 			this.cc.ic.repaint();
@@ -373,18 +383,24 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	 * Function to filter given set of markers with region shape.
 	 * <p>
 	 * Markers not coinciding with the given criteria are set inactive 
-	 * after filtering.
+	 * after filtering. Note that markers not located in given z-slice are 
+	 * skipped.
 	 * 
 	 * @param markers				Set of markers to filter.
+	 * @param z							Z-coordinate of image/slice in stack.
 	 * @param minSize				Minimal size of valid markers.
 	 * @param maxSize				Maximal size of valid markers.
 	 * @param minIntensity	Minimal intensity of valid markers.
 	 * @param maxIntensity	Maximal intensity of valid markers.
 	 */
-	public static void filterMarkerRegions(CellCntrMarkerVector markers, 
+	public static void filterMarkerRegions(CellCntrMarkerVector markers, int z,
 		int minSize, int maxSize, int minIntensity,	int maxIntensity) {
 		int regionCount = markers.size();
 		for (int i=0; i<regionCount; ++i) {
+			if (markers.get(i).getZ() != z) {
+				System.out.println("Skipping marker: " + z + " vs " + markers.get(i).getZ());
+				continue;
+			}
 			markers.get(i).setActive();
 			CellCntrMarkerShapeRegion sr = 
 					(CellCntrMarkerShapeRegion)markers.get(i).getShape();
