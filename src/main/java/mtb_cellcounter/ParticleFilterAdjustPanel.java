@@ -29,6 +29,7 @@ package mtb_cellcounter;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.HashMap;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -118,6 +119,26 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 	private int currentSliderMaxValue = -1;
 
 	/**
+	 * Type ID of currently selected marker type.
+	 */
+	private int currentMarkerType;
+	
+	/**
+	 * Archive of selected minimal values for all marker types ever seen.
+	 */
+	private HashMap<Integer, Integer> markerTypeCurrentMinValues;
+	
+	/**
+	 * Archive of selected maximal values for all marker types ever seen.
+	 */
+	private HashMap<Integer, Integer> markerTypeCurrentMaxValues;
+	
+	/**
+	 * Internal flag to indicate if an internal update process is performed.
+	 */
+	private boolean internalUpdateInProgress = false;
+	
+	/**
 	 * Default constructor.
 	 * @param psa					Reference to associated filter frame.
 	 * @param titleLabel	Label for entity to be filtered.
@@ -131,8 +152,8 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 		this.adjuster = psa;
 		this.ij = IJ.getInstance();
 		
-		// update internal status according to given data
-		this.setData(data, minVal, maxVal);
+		this.markerTypeCurrentMinValues = new HashMap<Integer, Integer>();
+		this.markerTypeCurrentMaxValues = new HashMap<Integer, Integer>();
 		
 		// setup panel
 		GridBagLayout gridbag = new GridBagLayout();
@@ -160,6 +181,9 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 		add(this.plot, c);
 		this.plot.addKeyListener(this.ij);
 
+		// update internal status according to given data
+		this.updateData(this.adjuster.getCurrentMarkerType(), data, minVal, maxVal);
+		
 		// slider for minimal threshold
 		this.minSlider = new JScrollBar(Scrollbar.HORIZONTAL, 
 			(int)(this.dataRange/3.0)+this.minValue,	 1, this.minValue, this.maxValue+1);
@@ -217,17 +241,47 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 	}
 
 	/**
-	 * Updates internal configuration of panel
+	 * Updates panel internal state and GUI by given data.
+	 * @param type		Type ID of markers.
+	 * @param data		New data.
+	 * @param minVal	Minimal value within data.
+	 * @param maxVal	Maximal value within data.
+	 */
+	public void updatePanelGUI(int type, int[] data, int minVal, int maxVal) {
+		// suppress event handling while doing the update
+		this.internalUpdateInProgress = true;
+		this.updateData(type,data,minVal,maxVal);
+		this.updateGUI();
+		this.internalUpdateInProgress = false;
+	}
+	
+	/**
+	 * Updates internal configuration of the panel according to new data.
+	 * @param type			Type ID of markers the data comes from.
 	 * @param data			New data.
 	 * @param minVal		Minimal value in data.
 	 * @param maxVal		Maximal value in data.
 	 */
-	public void setData(int[] data, int minVal, int maxVal) {
+	private void updateData(int type, int[] data, int minVal, int maxVal) {
+		this.currentMarkerType = type;
 		this.minValue = minVal;
 		this.maxValue = maxVal;
 		this.dataRange = this.maxValue-this.minValue;		
-		this.currentSliderMinValue = this.minValue;
-		this.currentSliderMaxValue = this.maxValue;
+		// check if marker type has been seen before
+		if (this.markerTypeCurrentMinValues.get(new Integer(type)) != null) {
+			this.currentSliderMinValue = 
+				this.markerTypeCurrentMinValues.get(new Integer(type)).intValue();
+		}
+		else {
+			this.currentSliderMinValue = this.minValue;
+		}
+		if (this.markerTypeCurrentMaxValues.get(new Integer(type)) != null) {
+			this.currentSliderMaxValue = 
+				this.markerTypeCurrentMaxValues.get(new Integer(type)).intValue();
+		}
+		else {
+			this.currentSliderMaxValue = this.maxValue;
+		}
 		if (this.minSlider != null) {
 			this.minSlider.setMinimum(this.minValue);
 			this.minSlider.setMaximum(this.maxValue+1);
@@ -243,11 +297,12 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 	/**
 	 * Re-initializes the histogram and updates all graphical elements.
 	 */
-	public void updateGUI() {
+	private void updateGUI() {
 		this.plot.setHistogram(this.plotData);
 		updatePlot();
-		updateScrollBars();
 		updateLabels();
+		updateScrollBars();
+		this.repaint();
 	}
 
 	/**
@@ -272,7 +327,7 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 	/**
 	 * Updates the scrollbars.
 	 */
-	void updateScrollBars() {
+	private void updateScrollBars() {
 		this.minSlider.setValue(this.currentSliderMinValue);
 		this.maxSlider.setValue(this.currentSliderMaxValue);
 	}
@@ -299,6 +354,9 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 
 	@Override
   public synchronized void actionPerformed(ActionEvent e) {
+		if (this.internalUpdateInProgress)
+			return;
+		
 		if (e.getSource() == this.maxLabel) {
 			this.updateSlidersFromTextfield(new FocusEvent(this.maxLabel, 0));
 			return;
@@ -330,6 +388,8 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 
 	@Override
 	public void focusLost(FocusEvent e) {
+		if (this.internalUpdateInProgress)
+			return;
 		this.updateSlidersFromTextfield(e);
 	}
 	
@@ -339,11 +399,18 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 	
 	@Override
   public synchronized void adjustmentValueChanged(AdjustmentEvent e) {
+		if (this.internalUpdateInProgress)
+			return;
+		
 		if (e.getSource()==this.minSlider) {
 			this.currentSliderMinValue = this.minSlider.getValue();
+			this.markerTypeCurrentMinValues.put(
+					new Integer(this.currentMarkerType), this.currentSliderMinValue);
 		}
 		else {
 			this.currentSliderMaxValue = this.maxSlider.getValue();
+			this.markerTypeCurrentMaxValues.put(
+					new Integer(this.currentMarkerType), this.currentSliderMaxValue);
 		}
 		this.updatePlot();
 		this.updateLabels();
@@ -363,6 +430,8 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 					return;
 				int newValue = Integer.valueOf(this.minLabel.getText()).intValue();
 				this.currentSliderMinValue = newValue; 
+				this.markerTypeCurrentMinValues.put(
+						new Integer(this.currentMarkerType), this.currentSliderMinValue);
 			}
 			else if (e.getSource() == this.maxLabel) {
 				if (   this.maxLabel == null || this.maxLabel.getText() == null
@@ -370,6 +439,8 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 					return;
 				int newValue = Integer.valueOf(this.maxLabel.getText()).intValue();
 				this.currentSliderMaxValue = newValue; 			
+				this.markerTypeCurrentMaxValues.put(
+						new Integer(this.currentMarkerType), this.currentSliderMaxValue);
 			}
 			this.updateScrollBars();
 			this.updatePlot();		

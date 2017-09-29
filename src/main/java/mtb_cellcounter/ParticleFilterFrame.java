@@ -293,12 +293,19 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	public void updateMarkerData(CellCntrMarkerVector data, 
 			MTBImage image, int stackZ) {
 		this.setMarkers(data, image, stackZ);
-		this.panelFilterSize.setData(this.histogramRegionSizes, 
-			this.minRegSize, this.maxRegSize);
-		this.panelFilterSize.updateGUI();
-		this.panelFilterIntensity.setData(this.histogramRegionIntensities, 
-			this.minRegIntensity, this.maxRegIntensity);
-		this.panelFilterIntensity.updateGUI();
+		this.panelFilterSize.updatePanelGUI(data.getType(), 
+			this.histogramRegionSizes, this.minRegSize, this.maxRegSize);
+		this.panelFilterIntensity.updatePanelGUI(data.getType(), 
+			this.histogramRegionIntensities, 
+				this.minRegIntensity, this.maxRegIntensity);
+	}
+	
+	/**
+	 * Request type ID of currently given set of marker vectors.
+	 * @return	Type ID of current markers.
+	 */
+	public int getCurrentMarkerType() {
+		return this.currentMarkers.getType();
 	}
 	
 	/**
