@@ -2191,8 +2191,8 @@ public class CellCounter extends JFrame
 				}
 				
 				// update GUI
-				CellCounter.this.dynRadioVector.elementAt(stromuliMarkerIndex).
-					setSelected(true);
+				CellCounter.this.dynRadioVector.elementAt(
+					CellCounter.this.currentMarkerVector.getType()-1).setSelected(true);
 				CellCounter.this.selectButton.setEnabled(true);
 				if (CellCounter.this.ic!=null)
 					CellCounter.this.ic.repaint();
