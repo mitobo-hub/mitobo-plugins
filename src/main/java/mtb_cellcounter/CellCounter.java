@@ -161,7 +161,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType
  * @author Birgit Moeller
  */
 public class CellCounter extends JFrame 
-	implements ActionListener, ChangeListener, ItemListener, DocumentListener, 
+	implements ActionListener, ItemListener, DocumentListener, 
 		StatusReporter, StatusListener, ALDSwingValueChangeListener {
 	
 	/*
@@ -566,7 +566,6 @@ public class CellCounter extends JFrame
 		JLabel plLabel = new JLabel(", Type: ");
 		this.spmTypePlastids = new SpinnerNumberModel(1, 1, typeCount, 1);
 		this.spTypePlastids = new JSpinner(this.spmTypePlastids);
-		this.spTypePlastids.addChangeListener(this);
 		gb.setConstraints(plPanel, gbc);
 		plPanel.add(this.cbDetectPlastids);
 		plPanel.add(plLabel);
@@ -1205,6 +1204,25 @@ public class CellCounter extends JFrame
       	IJ.error("Problems changing color, something went wrong...");
       }
 			this.ic.setCurrentMarkerVector(this.currentMarkerVector);
+			
+			// update filter panel if not null
+			if (this.pFilter != null) {
+				CellCntrMarkerVector pVec = this.currentMarkerVector;
+
+				MTBImage tmpImage = MTBImage.createMTBImage(this.img);
+				if (tmpImage.getSizeZ() < this.detectZSlice)
+					return;
+
+				// initialize detection image with byte image
+				this.detectZSlice = pVec.get(0).getZ();
+				this.detectImg = tmpImage.getImagePart(0, 0, this.detectZSlice-1, 0, 0, 
+						tmpImage.getSizeX(), tmpImage.getSizeY(),	1, 1, 1);
+				if (!this.detectImg.getType().equals(MTBImageType.MTB_BYTE)) {
+					this.detectImg = 
+							this.detectImg.convertType(MTBImageType.MTB_BYTE, true);
+				}
+				this.pFilter.updateMarkerData(pVec, this.detectImg, this.detectZSlice);
+			}
 		}
 		// button press on a color chooser
 		else if (command.compareTo("openColorChooser") == 0) {
@@ -1407,32 +1425,6 @@ public class CellCounter extends JFrame
 		if (this.ic!=null)
 			this.ic.repaint();
 		populateTxtFields();
-	}
-
-	@Override
-	public void stateChanged(ChangeEvent e) {
-		if (e.getSource().equals(this.spTypePlastids)) {
-			if (this.pFilter != null) {
-				SpinnerModel m = ((JSpinner)e.getSource()).getModel();
-				int selectedPlastids = ((Integer)m.getValue()).intValue();
-				CellCntrMarkerVector pVec = 
-						CellCounter.this.typeVector.get(selectedPlastids-1);
-
-				MTBImage tmpImage = MTBImage.createMTBImage(this.img);
-				if (tmpImage.getSizeZ() < this.detectZSlice)
-					return;
-
-				// initialize detection image with byte image
-				this.detectZSlice = pVec.get(0).getZ();
-				this.detectImg = tmpImage.getImagePart(0, 0, this.detectZSlice-1, 0, 0, 
-						tmpImage.getSizeX(), tmpImage.getSizeY(),	1, 1, 1);
-				if (!this.detectImg.getType().equals(MTBImageType.MTB_BYTE)) {
-					this.detectImg = 
-							this.detectImg.convertType(MTBImageType.MTB_BYTE, true);
-				}
-				this.pFilter.updateMarkerData(pVec, this.detectImg, this.detectZSlice);
-			}
-		}
 	}
 
 	@Override
