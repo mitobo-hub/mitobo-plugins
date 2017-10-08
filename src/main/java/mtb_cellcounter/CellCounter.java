@@ -75,6 +75,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -106,13 +107,10 @@ import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EtchedBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
@@ -133,7 +131,6 @@ import de.unihalle.informatik.Alida.exceptions.ALDDataIOException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDWorkflowException;
 import de.unihalle.informatik.Alida.gui.ALDChooseOpNameFrame;
-import de.unihalle.informatik.Alida.gui.ALDOperatorConfigurationFrame;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.Alida.operator.events.ALDControlEvent;
 import de.unihalle.informatik.Alida.operator.events.ALDControlEvent.ALDControlEventType;
@@ -145,9 +142,7 @@ import de.unihalle.informatik.Alida.workflows.ALDWorkflow.ALDWorkflowContextType
 import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEvent;
 import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEventListener;
 import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEvent.ALDWorkflowEventType;
-import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
 import de.unihalle.informatik.MiToBo.core.dataio.provider.swing.AwtColorDataIOSwing.ColorChooserPanel;
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBQuadraticCurve2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
@@ -1206,8 +1201,8 @@ public class CellCounter extends JFrame
 			this.ic.setCurrentMarkerVector(this.currentMarkerVector);
 			
 			// update filter panel if not null
-			if (this.pFilter != null) {
-				CellCntrMarkerVector pVec = this.currentMarkerVector;
+			CellCntrMarkerVector pVec = this.currentMarkerVector;
+			if (pVec.size() > 0 && this.pFilter != null) {
 
 				MTBImage tmpImage = MTBImage.createMTBImage(this.img);
 				if (tmpImage.getSizeZ() < this.detectZSlice)
@@ -2102,10 +2097,18 @@ public class CellCounter extends JFrame
 //					CellCounter.this.currentMarkerVector.setSegmentationData(res);
 					for (int i=0; i<particles.size(); ++i) {
 						MTBRegion2D reg = particles.elementAt(i);
+						// calculate average intensity
+						double intensity = 0; 
+						for (Point2D.Double p: reg.getPoints()) {
+							intensity += CellCounter.this.detectImg.getValueDouble(
+								(int)p.x, (int)p.y,	CellCounter.this.detectZSlice-1);
+						}
+						CellCntrMarkerShape s = 
+							new CellCntrMarkerShapeRegion(particles.get(i));
+						s.setAvgIntensity(intensity/reg.getArea());
 						CellCntrMarker marker = new CellCntrMarker(
 							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
-								CellCounter.this.detectZSlice, 
-									new CellCntrMarkerShapeRegion(particles.get(i)));
+								CellCounter.this.detectZSlice, s); 
 						CellCounter.this.currentMarkerVector.add(marker);
 					}
 					if (CellCounter.this.pFilter != null) {

@@ -93,6 +93,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 
 /**
  * @author Kurt De Vos
@@ -138,6 +140,10 @@ public class CellCntrImageCanvas extends ImageCanvas
 	 * Flag indicating if drag mode is active or not.
 	 */
 	private boolean dragMode = false;
+	/**
+	 * Flag indicating if region add mode is active or not.
+	 */
+	private boolean drawRegionMode = false;
 
 	/**
 	 * Status bar to display current settings in image window.
@@ -258,6 +264,15 @@ public class CellCntrImageCanvas extends ImageCanvas
 		
 		// if shift key is down and we are in drag mode, save position from now on
 		if (IJ.shiftKeyDown()) {
+			if (IJ.controlKeyDown()) {
+				if (!this.dragMode && !this.drawRegionMode && this.editsAllowed) {
+					this.dragList = new Vector<Point2D>();
+					this.dragList.add(new Point2D.Double(x,y));
+					this.dragMode = true;
+					this.drawRegionMode = true;
+				}
+				return;
+			}
 			if (!this.dragMode && this.editsAllowed) {
 				this.dragList = new Vector<Point2D>();
 				this.dragList.add(new Point2D.Double(x,y));
@@ -304,7 +319,7 @@ public class CellCntrImageCanvas extends ImageCanvas
 				if (targetMarker != null && targetVector != null) {
 					CellCntrMarker m = new CellCntrMarker(
 							targetMarker.getX(), targetMarker.getY(), 
-								this.img.getCurrentSlice(), null);
+								this.img.getCurrentSlice(), targetMarker.getShape());
 					this.currentMarkerVector.addMarker(m);				
 					// remove old marker from its list
 					targetVector.removeMarker(
@@ -338,7 +353,9 @@ public class CellCntrImageCanvas extends ImageCanvas
 			// check if a closed polygon was drawn, if not, just cancel
 			Point2D first = this.dragList.get(0);
 			Point2D last = this.dragList.get(this.dragList.size()-1);
-			if (first.distance(last) < CellCntrImageCanvas.CLOSED_POLY_DIST) {
+			if (   first.distance(last) < CellCntrImageCanvas.CLOSED_POLY_DIST
+					&& this.dragList.size() >= 3) {
+
 				int [] xpoints = new int[this.dragList.size()];
 				int [] ypoints = new int[this.dragList.size()];
 				for (int i=0;i<this.dragList.size();++i) {
@@ -346,23 +363,68 @@ public class CellCntrImageCanvas extends ImageCanvas
 					ypoints[i] = (int)this.dragList.elementAt(i).getY();
 				}
 				
-				// find all markers of active type located inside the polygon
-				Polygon poly = new Polygon(xpoints, ypoints, this.dragList.size());
-				CellCntrMarker m;
-				Vector<CellCntrMarker> toDelete = new Vector<CellCntrMarker>();
-				for (int i=0;i<this.currentMarkerVector.size();++i) {
-					m = this.currentMarkerVector.get(i);
-					if (poly.contains(m.getX(), m.getY()))
-						toDelete.add(m);
+				if (this.drawRegionMode) {
+					// a new marker region was added
+					double[] xs = new double[this.dragList.size()];
+					double[] ys = new double[this.dragList.size()];
+					double x=0, y=0;
+					int maxX=0, maxY=0;
+					for (int i=0;i<this.dragList.size();++i) {
+						x += xpoints[i];
+						y += ypoints[i];
+						xs[i] = xpoints[i];
+						ys[i] = ypoints[i];
+						if ((int)(xpoints[i] + 0.5) > maxX)
+							maxX = (int)(xpoints[i] + 0.5);
+						if ((int)(ypoints[i] + 0.5) > maxY)
+							maxY = (int)(ypoints[i] + 0.5);
+					}
+					MTBPolygon2D p = new MTBPolygon2D(xs, ys, true);
+					x /= this.dragList.size();
+					y /= this.dragList.size();
+
+					MTBImage pImg = MTBImage.createMTBImage(this.img);
+
+					double intensity = 0;
+					int count = 0;
+					int[][] mask = p.getBinaryMask(maxX+1, maxY+1, true);
+					for (int j=0;j<maxY+1;++j) {
+						for (int i=0;i<maxX+1;++i) {
+							if (mask[j][i] > 0) {
+								++count;
+								intensity += 
+									pImg.getValueDouble(i, j, this.img.getCurrentSlice()-1, 0, 0);
+							}
+						}
+					}
+										
+					CellCntrMarkerShapePolygon s = new CellCntrMarkerShapePolygon(p);
+					// set average intensity
+					s.setAvgIntensity(intensity/count);
+					CellCntrMarker m = 
+						new CellCntrMarker((int)x, (int)y, this.img.getCurrentSlice(), s);
+					this.currentMarkerVector.addMarker(m);				
 				}
-				// delete markers inside polygon
-				for (CellCntrMarker d: toDelete)
-					this.currentMarkerVector.removeMarker(
-							this.currentMarkerVector.getVectorIndex(d));
+				else {
+					// find all markers of active type located inside the polygon
+					Polygon poly = new Polygon(xpoints, ypoints, this.dragList.size());
+					CellCntrMarker m;
+					Vector<CellCntrMarker> toDelete = new Vector<CellCntrMarker>();
+					for (int i=0;i<this.currentMarkerVector.size();++i) {
+						m = this.currentMarkerVector.get(i);
+						if (poly.contains(m.getX(), m.getY()))
+							toDelete.add(m);
+					}
+					// delete markers inside polygon
+					for (CellCntrMarker d: toDelete)
+						this.currentMarkerVector.removeMarker(
+								this.currentMarkerVector.getVectorIndex(d));
+				}
 			}
 			// reset the drag list and disable drag mode
 			this.dragList = null;
 			this.dragMode = false;
+			this.drawRegionMode = false;
 			repaint();
 			this.cc.populateTxtFields();
 		}

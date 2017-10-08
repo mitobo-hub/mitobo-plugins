@@ -29,9 +29,7 @@ package mtb_cellcounter;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Point2D;
 import java.util.Iterator;
-import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -40,8 +38,6 @@ import javax.swing.JPanel;
 import ij.*;
 import ij.gui.*;
 import ij.measure.*;
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 
 /** 
@@ -223,59 +219,58 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 		this.currentMarkers = data;
 		this.currentStackZ = stackZ;
 		
-		MTBRegion2DSet markerRegions = new MTBRegion2DSet();
-		Iterator<CellCntrMarker> it = this.currentMarkers.iterator();
-		while (it.hasNext()) {
-			CellCntrMarkerShape shape = it.next().getShape();
-			if (!(shape.getClass().equals(CellCntrMarkerShapeRegion.class))) {
-				System.err.println("Error! Found non-region shape!");
-				return;
-			}
-			markerRegions.add(((CellCntrMarkerShapeRegion)shape).getRegion());
-		}
-		
 		// minimal and maximal region size
-		this.maxRegSize = markerRegions.calcMaxSize();
-		this.minRegSize = markerRegions.calcMinSize();
+		Iterator<CellCntrMarker> it = this.currentMarkers.iterator();
+		double size, maxSize=0, minSize=Double.MAX_VALUE;
+		while (it.hasNext()) {
+			size = it.next().getShape().getArea();
+			if (size > maxSize)
+				maxSize = size;
+			if (size < minSize)
+				minSize = size;
+		}
+		this.maxRegSize = (int)(maxSize + 0.5);
+		this.minRegSize = (int) minSize;
 
 		// calculate histogram of region sizes
+		it = this.currentMarkers.iterator();
 		this.histogramRegionSizes = new int[256];
-		for (int i=0;i<markerRegions.size();++i) {
-			int s = markerRegions.get(i).getArea();
-			int bin = (int)(0.5+(double)(s-this.minRegIntensity) / 
-					(double)(this.maxRegSize-this.minRegSize)*256.0);
+		while (it.hasNext()) {
+			double s = it.next().getShape().getArea();
+			int bin = (int)(0.5+(s-this.minRegSize) / 
+					(this.maxRegSize-this.minRegSize)*256.0);
 			if (bin >= 0 && bin < 256)
 				this.histogramRegionSizes[bin]++;
 		}
 		
 		// minimal and maximal region intensity
-		Vector<Point2D.Double> points;
-		MTBRegion2D reg;
-		double intensitySum = 0, averageIntensity = 0;
+//		Vector<Point2D.Double> points;
+//		MTBRegion2D reg;
+		double averageIntensity = 0;
 		double minimalRegIntensity = Double.MAX_VALUE, maximalRegIntensity = 0;
-		for (int j=0; j<markerRegions.size(); ++j) {
-			reg = markerRegions.get(j);
-			intensitySum = 0;
-			points = reg.getPoints();
-			for (Point2D.Double p: points) {
-				intensitySum += image.getValueDouble((int)p.x, (int)p.y);
+		it = this.currentMarkers.iterator();
+		while (it.hasNext()) {
+			CellCntrMarkerShape s = it.next().getShape();
+			if (s.getAvgIntensity() != -1) {
+//			intensitySum = 0;
+//			points = reg.getPoints();
+//			for (Point2D.Double p: points) {
+//				intensitySum += image.getValueDouble((int)p.x, (int)p.y);
+//			}
+				averageIntensity = s.getAvgIntensity();
+				if (averageIntensity > maximalRegIntensity)
+					maximalRegIntensity = averageIntensity;
+				if (averageIntensity < minimalRegIntensity)
+					minimalRegIntensity = averageIntensity;
 			}
-			averageIntensity = intensitySum / points.size();
-			((CellCntrMarkerShapeRegion)this.currentMarkers.get(j).getShape())
-					.setAvgIntensity(averageIntensity);
-			if (averageIntensity > maximalRegIntensity)
-				maximalRegIntensity = averageIntensity;
-			if (averageIntensity < minimalRegIntensity)
-				minimalRegIntensity = averageIntensity;
 		}
 		this.maxRegIntensity = (int)(maximalRegIntensity+0.5);
-		this.minRegIntensity = (int)(minimalRegIntensity+0.5);
+		this.minRegIntensity = (int) minimalRegIntensity;
 
 		// calculate intensity histogram
 		this.histogramRegionIntensities = new int[256];
 		for (int i=0;i<this.currentMarkers.size();++i) {
-			double s = ((CellCntrMarkerShapeRegion)this.currentMarkers.elementAt(i)
-					.getShape()).getAvgIntensity();
+			double s = this.currentMarkers.elementAt(i).getShape().getAvgIntensity();
 			int bin = (int)(0.5 + (s-this.minRegIntensity) / 
 					(this.maxRegIntensity - this.minRegIntensity)*256.0);
 			if (bin >= 0 && bin < 256)
@@ -409,11 +404,9 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 				continue;
 			}
 			markers.get(i).setActive();
-			CellCntrMarkerShapeRegion sr = 
-					(CellCntrMarkerShapeRegion)markers.get(i).getShape();
+			CellCntrMarkerShape sr = markers.get(i).getShape();
 			if (sr != null) {
-				if (   sr.getRegion().getArea() < minSize 
-						|| sr.getRegion().getArea() > maxSize ) {
+				if (sr.getArea() < minSize	|| sr.getArea() > maxSize ) {
 					markers.get(i).setInactive();
 				}
 				else if (   sr.getAvgIntensity() < minIntensity
