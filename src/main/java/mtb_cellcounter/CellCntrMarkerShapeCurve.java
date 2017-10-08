@@ -79,4 +79,13 @@ public class CellCntrMarkerShapeCurve extends CellCntrMarkerShape {
 		}
 		this.mBorder = new MTBBorder2D(bps, BorderConnectivity.CONNECTED_8);
 	}
+	
+	/* (non-Javadoc)
+	 * @see mtb_cellcounter.CellCntrMarkerShape#getArea()
+	 */
+	@Override
+	public double getArea() {
+		return this.mCurve.getSemiLengthAxisA() * this.mCurve.getSemiLengthAxisB()
+				* Math.PI;
+	}
 }

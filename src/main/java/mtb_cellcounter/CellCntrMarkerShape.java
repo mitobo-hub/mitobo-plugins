@@ -40,6 +40,11 @@ public abstract class CellCntrMarkerShape {
 	protected MTBBorder2D mBorder = null;
 	
 	/**
+	 * Average intensity of all shape pixels.
+	 */
+	protected double avgIntensity = -1;
+	
+	/**
 	 * Get outline of shape.
 	 * @return	Outline of shape, null if not available.
 	 */
@@ -47,4 +52,26 @@ public abstract class CellCntrMarkerShape {
 		return this.mBorder;
 	}
 	
+	/**
+	 * Get area of the shape.
+	 * @return	Size of shape area.
+	 */
+	public abstract double getArea();
+
+	/**
+	 * Set average region intensity.
+	 * @param ai	Average intensity.
+	 */
+	public void setAvgIntensity(double ai) {
+		this.avgIntensity = ai;
+	}
+	
+	/**
+	 * Get average intensity.
+	 * @return	Average intensity, -1 if not available.
+	 */
+	public double getAvgIntensity() {
+		return this.avgIntensity;
+	}
+
 }

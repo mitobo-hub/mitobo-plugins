@@ -39,11 +39,6 @@ public class CellCntrMarkerShapePolygon extends CellCntrMarkerShape {
 	protected MTBPolygon2D mPolygon = null;
 	
 	/**
-	 * Average intensity of all region pixels.
-	 */
-	protected double avgIntensity = -1;
-	
-	/**
 	 * Default constructor, it's protected to avoid constructing objects
 	 * without polygon data.
 	 */
@@ -66,27 +61,16 @@ public class CellCntrMarkerShapePolygon extends CellCntrMarkerShape {
 		}
 	}
 	
+	@Override
+	public double getArea() {
+		return Math.abs(this.mPolygon.getSignedArea());
+	}
+
 	/**
 	 * Get polygon representing the shape.
 	 * @return	Polygon object.
 	 */
 	public MTBPolygon2D getPolygon() {
 		return this.mPolygon;
-	}
-
-	/**
-	 * Set average region intensity.
-	 * @param ai	Average intensity.
-	 */
-	public void setAvgIntensity(double ai) {
-		this.avgIntensity = ai;
-	}
-	
-	/**
-	 * Get average intensity.
-	 * @return	Average intensity, -1 if not available.
-	 */
-	public double getAvgIntensity() {
-		return this.avgIntensity;
 	}
 }
