@@ -39,6 +39,7 @@
 package mtb_cellcounter;
 
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
@@ -52,6 +53,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 
 /**
  * Reads markers of an image from file in XML format.
@@ -123,11 +127,67 @@ public class ReadXML {
 				NodeList markerXNodeList = markerElement.getElementsByTagName("MarkerX");
 				NodeList markerYNodeList = markerElement.getElementsByTagName("MarkerY");
 				NodeList markerZNodeList = markerElement.getElementsByTagName("MarkerZ");
-				CellCntrMarker marker = new CellCntrMarker(
-					Integer.parseInt(readValue(markerXNodeList,0)),
-						Integer.parseInt(readValue(markerYNodeList,0)),
-							Integer.parseInt(readValue(markerZNodeList,0)), null);
-				markerVector.addMarker(marker);
+
+				NodeList markerType = markerElement.getElementsByTagName("MarkerShape");
+				if (markerType.getLength() == 0) {
+					CellCntrMarker marker = new CellCntrMarker(
+						Integer.parseInt(readValue(markerXNodeList,0)),
+							Integer.parseInt(readValue(markerYNodeList,0)),
+								Integer.parseInt(readValue(markerZNodeList,0)), null);
+					markerVector.addMarker(marker);
+				}
+				else {
+					String type = readValue(markerType,0); 
+					if (type.equals("region")) {
+						NodeList markerShapeList = 
+								markerTypeElement.getElementsByTagName("xml-fragment");
+						Element shapeElement = getElement(markerShapeList, j);
+
+						Vector<Point2D.Double> pList = new Vector<>();
+						NodeList pointNodeList = shapeElement.getElementsByTagName("mit:points");
+						NodeList points = getElement(pointNodeList,0).getElementsByTagName("mit:point");
+						for(int l=0; l<points.getLength(); l++){
+							Element pointElement = getElement(points, l);
+							NodeList px = pointElement.getElementsByTagName("mit:x");
+							NodeList py = pointElement.getElementsByTagName("mit:y");
+							pList.add(new Point2D.Double(Double.parseDouble(readValue(px,0)),
+									Double.parseDouble(readValue(py,0))));
+						}
+						MTBRegion2D r = new MTBRegion2D(pList);
+						CellCntrMarkerShapeRegion cr = new CellCntrMarkerShapeRegion(r);
+
+						CellCntrMarker marker = new CellCntrMarker(
+							Integer.parseInt(readValue(markerXNodeList,0)),
+								Integer.parseInt(readValue(markerYNodeList,0)),
+									Integer.parseInt(readValue(markerZNodeList,0)), cr);
+						markerVector.addMarker(marker);
+					}
+					else if (type.equals("polygon")) {
+						NodeList markerShapeList = 
+								markerTypeElement.getElementsByTagName("xml-fragment");
+						Element shapeElement = getElement(markerShapeList, j);
+						NodeList polygonType = shapeElement.getElementsByTagName("mit:closed");
+						boolean closed = Boolean.parseBoolean(readValue(polygonType,0));
+
+						Vector<Point2D.Double> pList = new Vector<>();
+						NodeList pointNodeList = shapeElement.getElementsByTagName("mit:point");
+						for(int l=0; l<pointNodeList.getLength(); l++){
+							Element pointElement = getElement(pointNodeList, l);
+							NodeList px = pointElement.getElementsByTagName("mit:x");
+							NodeList py = pointElement.getElementsByTagName("mit:y");
+							pList.add(new Point2D.Double(Double.parseDouble(readValue(px,0)),
+									Double.parseDouble(readValue(py,0))));
+						}
+						MTBPolygon2D p = new MTBPolygon2D(pList, closed);
+						CellCntrMarkerShapePolygon cp = new CellCntrMarkerShapePolygon(p);
+
+						CellCntrMarker marker = new CellCntrMarker(
+							Integer.parseInt(readValue(markerXNodeList,0)),
+								Integer.parseInt(readValue(markerYNodeList,0)),
+									Integer.parseInt(readValue(markerZNodeList,0)), cp);
+						markerVector.addMarker(marker);					
+					}
+				}
 			}
 			typeVector.add(markerVector);
 		}

@@ -48,6 +48,14 @@ import java.io.UnsupportedEncodingException;
 import java.util.ListIterator;
 import java.util.Vector;
 
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2DSet;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
+import de.unihalle.informatik.MiToBo_xml.MTBXMLPoint2DType;
+import de.unihalle.informatik.MiToBo_xml.MTBXMLPolygon2DType;
+import de.unihalle.informatik.MiToBo_xml.MTBXMLRegion2DSetType;
+import de.unihalle.informatik.MiToBo_xml.MTBXMLRegion2DType;
+
 /**
  * Writes markers of an image to file in XML format.
  *
@@ -103,6 +111,24 @@ public class WriteXML{
 					this.out.write("             <MarkerX>" +x+ "</MarkerX>\r\n");
 					this.out.write("             <MarkerY>" +y+ "</MarkerY>\r\n");
 					this.out.write("             <MarkerZ>" +z+ "</MarkerZ>\r\n");
+					CellCntrMarkerShape s = marker.getShape();
+					if (s != null) {
+						if (s.getClass().equals(CellCntrMarkerShapeRegion.class)) {
+							this.out.write("             <MarkerShape>region</MarkerShape>\r\n");
+							CellCntrMarkerShapeRegion sr = (CellCntrMarkerShapeRegion)s;
+							MTBRegion2D r = sr.getRegion();
+							MTBXMLRegion2DType rxml = r.toXMLType();
+							this.out.write(rxml.toString());
+						}
+						else if (s.getClass().equals(CellCntrMarkerShapePolygon.class)) {
+							this.out.write("             <MarkerShape>polygon</MarkerShape>\r\n");
+							CellCntrMarkerShapePolygon sp = (CellCntrMarkerShapePolygon)s;
+							MTBPolygon2D p = sp.getPolygon();
+							MTBXMLPolygon2DType pxml = p.toXMLType(null);
+							this.out.write(pxml.toString());
+						}
+						this.out.write("\r\n");
+					}
 					this.out.write("         </Marker>\r\n");
 				}
 				this.out.write("     </Marker_Type>\r\n");
@@ -110,7 +136,6 @@ public class WriteXML{
 
 			this.out.write(" </Marker_Data>\r\n");
 			this.out.write("</CellCounter_Marker_File>\r\n");
-
 			this.out.flush();  // Don't forget to flush!
 			this.out.close();
 			return true;
