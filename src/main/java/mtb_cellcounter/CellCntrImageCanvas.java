@@ -585,7 +585,7 @@ public class CellCntrImageCanvas extends ImageCanvas
 		Roi roi = this.img.getRoi();
 		double xM=0;
 		double yM=0;
-
+		
 		/*
         double magnification = super.getMagnification();
 
@@ -691,6 +691,23 @@ public class CellCntrImageCanvas extends ImageCanvas
 				g2.drawLine((int)xP, (int)yP, (int)xN, (int)yN);
 				prev = next;
 			}
+		}
+
+		// check if we have boundary information
+		if (   this.cc.getCellBoundaryChannel() > 0 
+				&& this.cc.getCellBoundaryChannel() <= this.img.getImageStackSize()) {
+			ImageProcessor p = 
+				this.img.getStack().getProcessor(this.cc.getCellBoundaryChannel());
+			g2.setStroke(new BasicStroke(1f));
+			g2.setColor(Color.cyan);
+			for (int y=0;y<p.getHeight();++y)
+				for (int x=0;x<p.getWidth();++x) {
+					if (p.getPixelValue(x, y) > 0) {
+						xM = ((x-this.srcRect.x)*this.magnification);
+						yM = ((y-this.srcRect.y)*this.magnification);
+						g2.drawOval((int)xM, (int)yM, 0, 0);
+					}
+				}
 		}
 	}
 

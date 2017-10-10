@@ -230,6 +230,9 @@ public class CellCounter extends JFrame
 	protected JCheckBox markersCheck;
 	protected JCheckBox numbersCheck;
 	protected JCheckBox showAllCheck;
+	// spinner for selecting channel with boundary information
+	protected JSpinner spChannelBoundaries;
+	protected SpinnerNumberModel spmChannelBoundaries;
 	// checkbox to enable/disable plastid detection
 	protected JCheckBox cbDetectPlastids;
 	protected JSpinner spTypePlastids;
@@ -484,7 +487,10 @@ public class CellCounter extends JFrame
 		gb.setConstraints(this.separator,gbc);
 		this.statButtonPanel.add(this.separator);
 
-		// add radio buttons to select channel to process
+		/*
+		 * Which channel to process?
+		 */
+
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		gbc.fill = GridBagConstraints.BOTH;
@@ -522,6 +528,25 @@ public class CellCounter extends JFrame
 		gb.setConstraints(channelSelectPanel,gbc);
 		this.statButtonPanel.add(channelSelectPanel);
 
+		/*
+		 * Optional channel with cell boundary information
+		 */
+		
+		gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.NORTHWEST;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridx=0;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		JPanel plPanel = new JPanel();
+		JLabel boundaryChannel = new JLabel("Boundary Channel (opt):");
+		gb.setConstraints(boundaryChannel, gbc);
+		this.spmChannelBoundaries = new SpinnerNumberModel(0, 0, 4, 1);
+		this.spChannelBoundaries = new JSpinner(this.spmChannelBoundaries);
+		gb.setConstraints(plPanel, gbc);
+		plPanel.add(boundaryChannel);
+		plPanel.add(this.spChannelBoundaries);
+		this.statButtonPanel.add(plPanel);
+
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		gbc.fill = GridBagConstraints.BOTH;
@@ -553,7 +578,7 @@ public class CellCounter extends JFrame
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridx=0;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		JPanel plPanel = new JPanel();
+		plPanel = new JPanel();
 		this.cbDetectPlastids = new JCheckBox(DETECTPLASTIDS);
 		this.cbDetectPlastids.setToolTipText("Enable/disable plastid detection");
 		this.cbDetectPlastids.setSelected(true);
@@ -1742,6 +1767,10 @@ public class CellCounter extends JFrame
 		return filePathComponents[PATH]+filePathComponents[FILE];
 	}
 
+	public int getCellBoundaryChannel() {
+		return ((Integer)(this.spmChannelBoundaries.getValue())).intValue();
+	}
+	
 	public Vector<JRadioButton> getButtonVector() {
 		return this.dynRadioVector;
 	}
