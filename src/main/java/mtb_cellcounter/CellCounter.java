@@ -2130,7 +2130,7 @@ public class CellCounter extends JFrame
 						double intensity = 0; 
 						for (Point2D.Double p: reg.getPoints()) {
 							intensity += CellCounter.this.detectImg.getValueDouble(
-								(int)p.x, (int)p.y,	CellCounter.this.detectZSlice-1);
+								(int)p.x, (int)p.y,	0);
 						}
 						CellCntrMarkerShape s = 
 							new CellCntrMarkerShapeRegion(particles.get(i));
