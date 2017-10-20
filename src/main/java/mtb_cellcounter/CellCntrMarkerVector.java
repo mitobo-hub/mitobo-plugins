@@ -169,26 +169,37 @@ public class CellCntrMarkerVector extends Vector<CellCntrMarker> {
 //		return (Math.abs(p1.distance(p)) < Math.abs(p2.distance(p)));
 //	}
 
+	/**
+	 * Get marker closest to given point position in given slice.
+	 * @param p						Point position.
+	 * @param sliceIndex	Index of slice.
+	 * @return	Closest marker, null if no marker in slice present.
+	 */
 	public CellCntrMarker getMarkerFromPosition(Point p, int sliceIndex){
-		Vector v = new Vector();
-		ListIterator it = this.listIterator();
+		Vector<CellCntrMarker> v = new Vector<CellCntrMarker>();
+		ListIterator<CellCntrMarker> it = this.listIterator();
 		while(it.hasNext()){
-			CellCntrMarker m = (CellCntrMarker)it.next();
+			CellCntrMarker m = it.next();
+			// check if marker is in correct slice
 			if (m.getZ()==sliceIndex){
 				v.add(m);
 			}
 		}
-		CellCntrMarker currentsmallest = (CellCntrMarker)v.get(0);
+		// safety check: any marker found?
+		if (v.size() == 0)
+			return null;
+		// init search with first marker as reference
+		CellCntrMarker currentsmallest = v.get(0);
+		Point p1 = new Point(currentsmallest.getX(),currentsmallest.getY());
+		double currentsmallestdist = Math.abs(p1.distance(p));
 		for (int i=1; i<v.size(); i++){
-			CellCntrMarker m2 = (CellCntrMarker)v.get(i);
-			Point p1 = new Point(currentsmallest.getX(),currentsmallest.getY());
+			CellCntrMarker m2 = v.get(i);
 			Point p2 = new Point(m2.getX(),m2.getY());
-			boolean closer = Math.abs(p1.distance(p)) > Math.abs(p2.distance(p));
-			if (closer){
-				currentsmallest=m2;
+			if (currentsmallestdist > Math.abs(p2.distance(p))) {
+				currentsmallest = m2;
+				currentsmallestdist = Math.abs(p2.distance(p));
 			}
 		}
-
 		return currentsmallest;
 	}
 
