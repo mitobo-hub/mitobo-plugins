@@ -1719,7 +1719,11 @@ public class CellCounter extends JFrame
 	}
 
 	public void exportMarkers(){
-		String filePath = getFilePath(new JFrame(), "Save Marker File (.xml)", SAVE);
+		String filePath = 
+				getFilePath(new JFrame(), "Save Marker File (.xml)", SAVE);
+		// save dialog was canceled
+		if (filePath == null)
+			return;
 		if (!filePath.endsWith(".xml"))
 			filePath+=".xml";
 		try {
