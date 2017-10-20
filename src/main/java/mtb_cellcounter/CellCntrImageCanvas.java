@@ -307,11 +307,13 @@ public class CellCntrImageCanvas extends ImageCanvas
 					if (v.size() > 0) {
 						CellCntrMarker m = v.getMarkerFromPosition(
 							mousePos, this.img.getCurrentSlice());
-						dist = mousePos.distance(m.getX(), m.getY());
-						if (dist < markerDist) {
-							markerDist = dist;
-							targetMarker = m;
-							targetVector = v;
+						if (m != null) {
+							dist = mousePos.distance(m.getX(), m.getY());
+							if (dist < markerDist) {
+								markerDist = dist;
+								targetMarker = m;
+								targetVector = v;
+							}
 						}
 					}
 				}
