@@ -39,6 +39,9 @@ import ij.*;
 import ij.gui.*;
 import ij.measure.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShape;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
 
 /** 
  * Adjusts the lower and upper thresholds for size and intensity of regions.
