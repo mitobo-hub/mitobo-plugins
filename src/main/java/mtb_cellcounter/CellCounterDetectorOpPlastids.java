@@ -68,7 +68,7 @@ public class CellCounterDetectorOpPlastids
 	 * {@link MTB_CellCounter}. E.g., options for parameter validation and 
 	 * the 'Actions' menu are missing.
 	 */
-	protected ParticleDetectorConfigFrame particleConfigureFrame;
+	protected PlastidDetector2DParticlesUWTConfigFrame particleConfigureFrame;
 
 	/**
 	 * Constructor.	
@@ -86,7 +86,7 @@ public class CellCounterDetectorOpPlastids
 	  this.particleOp.setMinRegionSize(1);
 	  this.particleOp.setCorrelationThreshold(1.5);
 	  this.particleConfigureFrame = 
-	  	new ParticleDetectorConfigFrame(this.particleOp);
+	  	new PlastidDetector2DParticlesUWTConfigFrame(this.particleOp);
 	}
 
 	@Override

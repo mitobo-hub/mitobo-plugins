@@ -44,21 +44,22 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExce
 import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
 import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
 import de.unihalle.informatik.MiToBo.core.helpers.MTBIcon;
+import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
 /**
- * Frame to configure an {@link ParticleDetectorUWT2D} in context of 
+ * Abstract frame class to configure a detector operator in context of 
  * {@link MTB_CellCounter}.
  * 
  * @author Birgit Moeller
  */
-public class ParticleDetectorConfigFrame extends ALDSwingComponent 
+public abstract class CellCounterDetectorOpConfigFrame extends ALDSwingComponent 
 	implements ActionListener, ALDSwingValueChangeListener {
 
 	/**
 	 * Local flag for debug output.
 	 */
 	@SuppressWarnings("unused")
-	private boolean debug = false;
+	protected boolean debug = false;
 
 	/**
 	 * Width of the frame.
@@ -73,7 +74,7 @@ public class ParticleDetectorConfigFrame extends ALDSwingComponent
 	/**
 	 * The operator associated with this frame.
 	 */
-	protected ParticleDetectorUWT2D op = null;
+	protected ALDOperator op = null;
 
 	/**
 	 * The top level frame.
@@ -88,9 +89,8 @@ public class ParticleDetectorConfigFrame extends ALDSwingComponent
 	/**
 	 * Title string of window.
 	 */
-	protected final static String titleString = 
-		"Configure Particle Detector Parameters...";
-
+	protected static String titleString =	"Configure Detector Parameters...";
+	
 	/**
 	 * Last directory visited, initially it's user's home.
 	 */
@@ -118,7 +118,7 @@ public class ParticleDetectorConfigFrame extends ALDSwingComponent
 	 * @param _op Operator to be associated with this frame object.
 	 * @throws ALDOperatorException
 	 */
-	public ParticleDetectorConfigFrame(ParticleDetectorUWT2D _op) 
+	public CellCounterDetectorOpConfigFrame(ALDOperator _op) 
 			throws ALDOperatorException {
 		if (_op == null)
 			throw new ALDOperatorException(OperatorExceptionType.INSTANTIATION_ERROR,
@@ -187,87 +187,7 @@ public class ParticleDetectorConfigFrame extends ALDSwingComponent
 	/**
 	 * Adds the input fields for all relevant parameters.
 	 */
-	protected void addParameterInputFields(JPanel parentPanel) {
-		try {
-			// JMin
-			JPanel paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-			JLabel nameLabel = new JLabel("Minimal Scale ( JMin ): ");
-			nameLabel.setToolTipText("Smallest scale on which to detect particles," 
-				+ " must be >= 1.");
-			paramPanel.add(nameLabel);
-			ALDOpParameterDescriptor descr = this.op.getParameterDescriptor("Jmin");
-			Object value = this.op.getParameter("Jmin");
-			ALDSwingComponent aldElement = 
-				ALDDataIOManagerSwing.getInstance().createGUIElement(
-					descr.getField(),	descr.getMyclass(),	value, descr);
-			aldElement.addValueChangeEventListener(this);
-			this.guiElements.put("Jmin", aldElement);
-			paramPanel.add(aldElement.getJComponent());
-			parentPanel.add(paramPanel);
-
-			// JMax
-			paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-			nameLabel = new JLabel("Maximal Scale ( JMax ): ");
-			nameLabel.setToolTipText("Largest scale on which to detect particles," 
-				+ " must be >= JMin.");
-			paramPanel.add(nameLabel);
-			descr = this.op.getParameterDescriptor("Jmax");
-			value = this.op.getParameter("Jmax");
-			aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-				descr.getField(),	descr.getMyclass(),	value, descr);
-			aldElement.addValueChangeEventListener(this);
-			this.guiElements.put("Jmax", aldElement);
-			paramPanel.add(aldElement.getJComponent());
-			parentPanel.add(paramPanel);
-
-			// scale interval size
-			paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-			nameLabel = new JLabel("Scale Interval Size: ");
-			nameLabel.setToolTipText("Number of scales to consider for each " 
-				+ "correlation image, must be <= (JMax - JMin + 1).");
-			paramPanel.add(nameLabel);
-			descr = this.op.getParameterDescriptor("scaleIntervalSize");
-			value = this.op.getParameter("scaleIntervalSize");
-			aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-				descr.getField(),	descr.getMyclass(),	value, descr);
-			aldElement.addValueChangeEventListener(this);
-			this.guiElements.put("scaleIntervalSize", aldElement);
-			paramPanel.add(aldElement.getJComponent());
-			parentPanel.add(paramPanel);
-
-			// correlation threshold
-			paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-			nameLabel = new JLabel("Correlation Threshold: ");
-			nameLabel.setToolTipText("Threshold for correlation images, the smaller "
-				+ "the more particles will be detected.");
-			paramPanel.add(nameLabel);
-			descr = this.op.getParameterDescriptor("corrThreshold");
-			value = this.op.getParameter("corrThreshold");
-			aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-				descr.getField(),	descr.getMyclass(),	value, descr);
-			aldElement.addValueChangeEventListener(this);
-			this.guiElements.put("corrThreshold", aldElement);
-			paramPanel.add(aldElement.getJComponent());
-			parentPanel.add(paramPanel);
-
-			// minimal region size
-			paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-			nameLabel = new JLabel("Minimum Region Size: ");
-			nameLabel.setToolTipText("Regions smaller than given threshold on " 
-				+ "the size will be ignored.");
-			paramPanel.add(nameLabel);
-			descr = this.op.getParameterDescriptor("minRegionSize");
-			value = this.op.getParameter("minRegionSize");
-			aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-				descr.getField(),	descr.getMyclass(),	value, descr);
-			aldElement.addValueChangeEventListener(this);
-			this.guiElements.put("minRegionSize", aldElement);
-			paramPanel.add(aldElement.getJComponent());
-			parentPanel.add(paramPanel);
-		} catch (ALDException exp) {
-			exp.printStackTrace();
-		}
-	}
+	protected abstract void addParameterInputFields(JPanel parentPanel);
 	
 	/**
 	 * Adds set of control buttons to the main panel.
