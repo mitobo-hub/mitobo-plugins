@@ -46,7 +46,7 @@ import de.unihalle.informatik.MiToBo.apps.plantCells.plastids.PlastidDetector2DP
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.NONE)
 @ALDDerivedClass
-public class CellCounterDetectorOpPlastids 
+public class CellCounterDetectorOpPlastidsParticlesUWT 
 	extends CellCounterDetectorOp {
 	
 	/**
@@ -74,7 +74,7 @@ public class CellCounterDetectorOpPlastids
 	 * Constructor.	
 	 * @throws ALDOperatorException Thrown in case of initialization error.
 	 */
-	public CellCounterDetectorOpPlastids() 
+	public CellCounterDetectorOpPlastidsParticlesUWT() 
 			throws ALDOperatorException {
 		this.m_statusListeners = new Vector<StatusListener>(1);
 		// configure the particle detector, except for the input image

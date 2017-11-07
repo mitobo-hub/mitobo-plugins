@@ -356,7 +356,7 @@ public class CellCounter extends JFrame
 	    			"mtb_cellcounter.CellCounterDetectorOpAll").newInstance();
 	    } catch (Exception e) {
 	    	// ... if it cannot be found, fall-back to plastid-only detector
-	    	detectorContainer = new CellCounterDetectorOpPlastids();
+	    	detectorContainer = new CellCounterDetectorOpPlastidsParticlesUWT();
 	    }
 	    this.detectorOp = detectorContainer;
 	    this.detectorOp.addStatusListener(this);
