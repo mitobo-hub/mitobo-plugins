@@ -1351,7 +1351,7 @@ public class CellCounter extends JFrame
 					typeInfo 
 						+= ", " + ((Integer)this.spmTypeStromuli.getValue()).toString();
 				Object[] options = {"Continue", "Cancel"};
-				int n = JOptionPane.showOptionDialog(null,
+				int n = JOptionPane.showOptionDialog(CellCounter.this,
 						"Attention, your markers of type(s) " + typeInfo + " will be lost!",
 						"Warning: Markers will be lost",
 						JOptionPane.YES_NO_OPTION,
