@@ -39,7 +39,7 @@ import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
  * 
  * @author Birgit Moeller
  */
-public class PlastidDetector2DParticlesUWTConfigFrame 
+public class CellCounterDetectorOpConfigFramePlastidsParticlesUWT 
 		extends CellCounterDetectorOpConfigFrame {
 
 	/** 
@@ -47,7 +47,7 @@ public class PlastidDetector2DParticlesUWTConfigFrame
 	 * @param _op Operator to be associated with this frame object.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public PlastidDetector2DParticlesUWTConfigFrame(
+	public CellCounterDetectorOpConfigFramePlastidsParticlesUWT(
 			ParticleDetectorUWT2D _op) throws ALDOperatorException {
 		super(_op);
 		titleString = "Configure Plastid Detector Parameters...";		
