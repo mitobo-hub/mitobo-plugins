@@ -77,10 +77,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.ListIterator;
@@ -141,6 +143,7 @@ import de.unihalle.informatik.Alida.workflows.ALDWorkflowNodeID;
 import de.unihalle.informatik.Alida.workflows.ALDWorkflow.ALDWorkflowContextType;
 import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEvent;
 import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEventListener;
+import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowRunFailureInfo;
 import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEvent.ALDWorkflowEventType;
 import de.unihalle.informatik.MiToBo.core.dataio.provider.swing.AwtColorDataIOSwing.ColorChooserPanel;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBQuadraticCurve2D;
@@ -2100,8 +2103,30 @@ public class CellCounter extends JFrame
 			case USER_INTERRUPT:
 				break;
 			case RUN_FAILURE:
-				JOptionPane.showMessageDialog(null, "Detection failed!\n",
+				String msg = null;
+				if (event.getId() != null) {
+					ALDWorkflowRunFailureInfo wi = 
+							(ALDWorkflowRunFailureInfo)event.getId();
+					if (wi != null) {
+						try {
+							Exception e = wi.getException();
+							msg = e.getMessage();
+							if (msg == null) {
+								ByteArrayOutputStream os = new ByteArrayOutputStream();
+								PrintStream ps = new PrintStream(os);
+								e.printStackTrace(ps);
+								ps.close();
+								os.close();
+								msg = os.toString("UTF8");
+							}
+						} catch (Exception e1) {
+							// just ignore all exceptions, we won't loose anything
+						}
+					}
+				}
+				JOptionPane.showMessageDialog(null, "Detection failed!\n" + msg, 
 						"Error", JOptionPane.ERROR_MESSAGE);
+				this.progressMessageWin.setVisible(false);
 				break;
 			case SHOW_RESULTS:
 				this.progressMessageWin.setVisible(false);
