@@ -2104,9 +2104,9 @@ public class CellCounter extends JFrame
 				break;
 			case RUN_FAILURE:
 				String msg = null;
-				if (event.getId() != null) {
+				if (event.getInfo() != null) {
 					ALDWorkflowRunFailureInfo wi = 
-							(ALDWorkflowRunFailureInfo)event.getId();
+							(ALDWorkflowRunFailureInfo)event.getInfo();
 					if (wi != null) {
 						try {
 							Exception e = wi.getException();
