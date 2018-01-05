@@ -64,6 +64,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FileDialog;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -84,7 +85,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Vector;
 import java.util.concurrent.BlockingDeque;
@@ -92,6 +98,7 @@ import java.util.concurrent.BlockingDeque;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -100,21 +107,29 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.text.Document;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -130,9 +145,11 @@ import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingCom
 import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeEvent;
 import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeListener;
 import de.unihalle.informatik.Alida.exceptions.ALDDataIOException;
+import de.unihalle.informatik.Alida.exceptions.ALDDataIOProviderException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDWorkflowException;
 import de.unihalle.informatik.Alida.gui.ALDChooseOpNameFrame;
+import de.unihalle.informatik.Alida.helpers.ALDClassInfo;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.Alida.operator.events.ALDControlEvent;
 import de.unihalle.informatik.Alida.operator.events.ALDControlEvent.ALDControlEventType;
@@ -156,6 +173,7 @@ import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCn
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeCurve;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeRegion;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.operators.CellCounterDetectOperator;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.xml.ReadXML;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.xml.WriteXML;
 
@@ -302,18 +320,9 @@ public class CellCounter extends JFrame
 	private GridLayout dynGrid;
 	
 	/**
-	 * Plastid and stromuli wrapper operator.
+	 * List of active/selected detectors.
 	 */
-	protected CellCounterDetectorOp detectorOp;
-	/**
-	 * Particle detector operator.
-	 */
-//	protected ParticleDetectorUWT2D particleOp;
-	/**
-	 * Configuration window associated with particle detector.
-	 */
-//	protected ALDSwingComponent particleConfButton;
-	protected JButton detectorConfigureButton;
+	private Vector<CellCounterDetectOperator> detectorOps;
 	
 	/**
 	 * Proxy object to run particle detector in thread mode.
@@ -347,30 +356,30 @@ public class CellCounter extends JFrame
 		this.txtFieldVector = new Vector<JTextField>();
 		this.dynRadioVector = new Vector<JRadioButton>();
 		this.dynColorChooserVector = new Vector<ALDSwingComponent>();
-		try {
-	    this.detectorConfigureButton = new JButton(CONFIGURE);
-	    this.detectorConfigureButton.setActionCommand(CONFIGURE);
-	    
-	    // init the detector container
-	    CellCounterDetectorOp detectorContainer;
-	    try {
-	    	// try to use a concrete sub-class implementation...
-	    	detectorContainer = (CellCounterDetectorOp)Class.forName(
-	    			"mtb_cellcounter.CellCounterDetectorOpAll").newInstance();
-	    } catch (Exception e) {
-	    	// ... if it cannot be found, fall-back to plastid-only detector
-	    	detectorContainer = new CellCounterDetectorOpPlastidsParticlesUWT();
-	    }
-	    this.detectorOp = detectorContainer;
-	    this.detectorOp.addStatusListener(this);
-	    this.opProxy = new OperatorExecutionProxy(this.detectorOp);
-	    this.opProxy.nodeParameterChanged();
-	    // register detector operator as listener for config button
-	    this.detectorConfigureButton.addActionListener(this.detectorOp);
-    } catch (ALDOperatorException e) {
-    	IJ.error("Cannot initialize particle detector, initial\n" 
-     		+ "pre-segmentation will not be possible!");
-    } 
+//		try {
+//	    this.detectorConfigureButton = new JButton(CONFIGURE);
+//	    this.detectorConfigureButton.setActionCommand(CONFIGURE);
+//	    
+//	    // init the detector container
+//	    CellCounterDetectorOp detectorContainer;
+//	    try {
+//	    	// try to use a concrete sub-class implementation...
+//	    	detectorContainer = (CellCounterDetectorOp)Class.forName(
+//	    			"mtb_cellcounter.CellCounterDetectorOpAll").newInstance();
+//	    } catch (Exception e) {
+//	    	// ... if it cannot be found, fall-back to plastid-only detector
+//	    	detectorContainer = new CellCounterDetectorOpPlastidsParticlesUWT();
+//	    }
+//	    this.detectorOp = detectorContainer;
+//	    this.detectorOp.addStatusListener(this);
+//	    this.opProxy = new OperatorExecutionProxy(this.detectorOp);
+//	    this.opProxy.nodeParameterChanged();
+//	    // register detector operator as listener for config button
+//	    this.detectorConfigureButton.addActionListener(this.detectorOp);
+//    } catch (ALDOperatorException e) {
+//    	IJ.error("Cannot initialize particle detector, initial\n" 
+//     		+ "pre-segmentation will not be possible!");
+//    } 
 		initGUI();
 		populateTxtFields();
 		instance = this;
@@ -572,74 +581,92 @@ public class CellCounter extends JFrame
 		 * Which objects to detect?
 		 */
 		
-		int typeCount = this.dynRadioVector.size();
+//		int typeCount = this.dynRadioVector.size();
+//		
+//		gbc = new GridBagConstraints();
+//		gbc.anchor = GridBagConstraints.NORTHWEST;
+//		gbc.fill = GridBagConstraints.BOTH;
+//		gbc.gridx=0;
+//		gbc.gridwidth = GridBagConstraints.REMAINDER;
+//		JLabel objectDetectLabel = new JLabel("Objects to detect:");
+//		gb.setConstraints(objectDetectLabel, gbc);
+//		this.statButtonPanel.add(objectDetectLabel);
+//
+//		gbc = new GridBagConstraints();
+//		gbc.anchor = GridBagConstraints.NORTHWEST;
+//		gbc.fill = GridBagConstraints.BOTH;
+//		gbc.gridx=0;
+//		gbc.gridwidth = GridBagConstraints.REMAINDER;
+//		plPanel = new JPanel();
+//		this.cbDetectPlastids = new JCheckBox(DETECTPLASTIDS);
+//		this.cbDetectPlastids.setToolTipText("Enable/disable plastid detection");
+//		this.cbDetectPlastids.setSelected(true);
+//		this.cbDetectPlastids.addItemListener(this);
+//		JLabel plLabel = new JLabel(", Type: ");
+//		this.spmTypePlastids = new SpinnerNumberModel(1, 1, typeCount, 1);
+//		this.spTypePlastids = new JSpinner(this.spmTypePlastids);
+//		gb.setConstraints(plPanel, gbc);
+//		plPanel.add(this.cbDetectPlastids);
+//		plPanel.add(plLabel);
+//		plPanel.add(this.spTypePlastids);
+//		this.statButtonPanel.add(plPanel);
+//
+//		gbc = new GridBagConstraints();
+//		gbc.anchor = GridBagConstraints.NORTHWEST;
+//		gbc.fill = GridBagConstraints.BOTH;
+//		gbc.gridx=0;
+//		gbc.gridwidth = GridBagConstraints.REMAINDER;
+//		plPanel = new JPanel();
+//		this.cbDetectStromuli = new JCheckBox(DETECTSTROMULI);
+//		this.cbDetectStromuli.setToolTipText("Enable/disable stromuli detection");
+//		this.cbDetectStromuli.setSelected(false);
+//		this.cbDetectStromuli.addItemListener(this);
+//		plLabel = new JLabel(", Type: ");
+//		this.spmTypeStromuli = new SpinnerNumberModel(2, 1, typeCount, 1);
+//		this.spTypeStromuli = new JSpinner(this.spmTypeStromuli);
+//		gb.setConstraints(plPanel, gbc);
+//		plPanel.add(this.cbDetectStromuli);
+//		plPanel.add(plLabel);
+//		plPanel.add(this.spTypeStromuli);
+//		this.statButtonPanel.add(plPanel);
+//
+//		gbc = new GridBagConstraints();
+//		gbc.anchor = GridBagConstraints.NORTHWEST;
+//		gbc.fill = GridBagConstraints.BOTH;
+//		gbc.gridx=0;
+//		gbc.gridwidth = GridBagConstraints.REMAINDER;
+//		plPanel = new JPanel();
+//		this.cbDetectStomata = new JCheckBox(DETECTSTOMATA);
+//		this.cbDetectStomata.setToolTipText("Enable/disable stomata detection");
+//		this.cbDetectStomata.setSelected(false);
+//		this.cbDetectStomata.addItemListener(this);
+//		plLabel = new JLabel(", Type: ");
+//		this.spmTypeStomata = new SpinnerNumberModel(3, 1, typeCount, 1);
+//		this.spTypeStomata = new JSpinner(this.spmTypeStomata);
+//		gb.setConstraints(plPanel, gbc);
+//		plPanel.add(this.cbDetectStomata);
+//		plPanel.add(plLabel);
+//		plPanel.add(this.spTypeStomata);
+//		this.statButtonPanel.add(plPanel);
+
+		try {
+			this.statButtonPanel.add(new CellCounterDetectOperatorConfigPanel());
+		} catch (ALDDataIOProviderException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		gbc = new GridBagConstraints();
-		gbc.anchor = GridBagConstraints.NORTHWEST;
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.gridx=0;
-		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		JLabel objectDetectLabel = new JLabel("Objects to detect:");
-		gb.setConstraints(objectDetectLabel, gbc);
-		this.statButtonPanel.add(objectDetectLabel);
-
-		gbc = new GridBagConstraints();
-		gbc.anchor = GridBagConstraints.NORTHWEST;
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.gridx=0;
-		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		plPanel = new JPanel();
-		this.cbDetectPlastids = new JCheckBox(DETECTPLASTIDS);
-		this.cbDetectPlastids.setToolTipText("Enable/disable plastid detection");
-		this.cbDetectPlastids.setSelected(true);
-		this.cbDetectPlastids.addItemListener(this);
-		JLabel plLabel = new JLabel(", Type: ");
-		this.spmTypePlastids = new SpinnerNumberModel(1, 1, typeCount, 1);
-		this.spTypePlastids = new JSpinner(this.spmTypePlastids);
-		gb.setConstraints(plPanel, gbc);
-		plPanel.add(this.cbDetectPlastids);
-		plPanel.add(plLabel);
-		plPanel.add(this.spTypePlastids);
-		this.statButtonPanel.add(plPanel);
-
-		gbc = new GridBagConstraints();
-		gbc.anchor = GridBagConstraints.NORTHWEST;
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.gridx=0;
-		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		plPanel = new JPanel();
-		this.cbDetectStromuli = new JCheckBox(DETECTSTROMULI);
-		this.cbDetectStromuli.setToolTipText("Enable/disable stromuli detection");
-		this.cbDetectStromuli.setSelected(false);
-		this.cbDetectStromuli.addItemListener(this);
-		plLabel = new JLabel(", Type: ");
-		this.spmTypeStromuli = new SpinnerNumberModel(2, 1, typeCount, 1);
-		this.spTypeStromuli = new JSpinner(this.spmTypeStromuli);
-		gb.setConstraints(plPanel, gbc);
-		plPanel.add(this.cbDetectStromuli);
-		plPanel.add(plLabel);
-		plPanel.add(this.spTypeStromuli);
-		this.statButtonPanel.add(plPanel);
-
-		gbc = new GridBagConstraints();
-		gbc.anchor = GridBagConstraints.NORTHWEST;
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.gridx=0;
-		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		plPanel = new JPanel();
-		this.cbDetectStomata = new JCheckBox(DETECTSTOMATA);
-		this.cbDetectStomata.setToolTipText("Enable/disable stomata detection");
-		this.cbDetectStomata.setSelected(false);
-		this.cbDetectStomata.addItemListener(this);
-		plLabel = new JLabel(", Type: ");
-		this.spmTypeStomata = new SpinnerNumberModel(3, 1, typeCount, 1);
-		this.spTypeStomata = new JSpinner(this.spmTypeStomata);
-		gb.setConstraints(plPanel, gbc);
-		plPanel.add(this.cbDetectStomata);
-		plPanel.add(plLabel);
-		plPanel.add(this.spTypeStomata);
-		this.statButtonPanel.add(plPanel);
-
+		this.separator = new JSeparator(SwingConstants.HORIZONTAL);
+		this.separator.setPreferredSize(new Dimension(1,1));
+		gb.setConstraints(this.separator,gbc);
+		this.statButtonPanel.add(this.separator);
+		
 		/*
 		 * Initial object detection.
 		 */
@@ -650,35 +677,35 @@ public class CellCounter extends JFrame
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridx=0;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		if (this.detectorOp != null) {
+//		if (this.detectorOp != null) {
 			this.detectButton = makeButton(DETECT,
 					"Perform pre-segmentation of particles.");
 			gb.setConstraints(this.detectButton,gbc);
 			this.statButtonPanel.add(this.detectButton);
-		}
-		else {
-			JButton dummyButton = new JButton(DETECT);
-			dummyButton.setEnabled(false);
-			gb.setConstraints(dummyButton,gbc);
-			this.statButtonPanel.add(dummyButton);
-		}
+//		}
+//		else {
+//			JButton dummyButton = new JButton(DETECT);
+//			dummyButton.setEnabled(false);
+//			gb.setConstraints(dummyButton,gbc);
+//			this.statButtonPanel.add(dummyButton);
+//		}
 
 		// add button to configure detector
-		gbc = new GridBagConstraints();
-		gbc.anchor = GridBagConstraints.NORTHWEST;
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.gridx=0;
-		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		if (this.detectorConfigureButton != null) {
-			gb.setConstraints(this.detectorConfigureButton,gbc);
-			this.statButtonPanel.add(this.detectorConfigureButton);
-		}
-		else {
-			JButton dummyButton = new JButton("Configure...");
-			dummyButton.setEnabled(false);
-			gb.setConstraints(dummyButton,gbc);
-			this.statButtonPanel.add(dummyButton);
-		}
+//		gbc = new GridBagConstraints();
+//		gbc.anchor = GridBagConstraints.NORTHWEST;
+//		gbc.fill = GridBagConstraints.BOTH;
+//		gbc.gridx=0;
+//		gbc.gridwidth = GridBagConstraints.REMAINDER;
+//		if (this.detectorConfigureButton != null) {
+//			gb.setConstraints(this.detectorConfigureButton,gbc);
+//			this.statButtonPanel.add(this.detectorConfigureButton);
+//		}
+//		else {
+//			JButton dummyButton = new JButton("Configure...");
+//			dummyButton.setEnabled(false);
+//			gb.setConstraints(dummyButton,gbc);
+//			this.statButtonPanel.add(dummyButton);
+//		}
 
 		// filter particles
 		gbc = new GridBagConstraints();
@@ -1127,7 +1154,7 @@ public class CellCounter extends JFrame
 				&& this.ic.getImage() != null
 				&& this.ic.getImage().getWindow() != null)
 			this.ic.getImage().getWindow().dispose();
-		this.detectorOp.dispose();
+//		this.detectorOp.dispose();
 		if (this.pFilter != null)
 			this.pFilter.dispose();
 		super.dispose();
@@ -2315,6 +2342,365 @@ public class CellCounter extends JFrame
 		}
 	}
 	
+	/**
+	 * Panel to configure operators to be applied to image.
+	 */
+	protected class CellCounterDetectOperatorConfigPanel 
+		extends JPanel implements ActionListener, TableModelListener {
+
+		/**
+		 * List of available energies.
+		 */
+		@SuppressWarnings("rawtypes")
+		private Collection<Class> availableClasses = null;
+
+		/**
+		 * Mapping of short names to detector objects.
+		 */
+		@SuppressWarnings("rawtypes")
+		private HashMap<String, CellCounterDetectOperator> classNameMapping = null;
+
+		/**
+		 * List of currently selected energies.
+		 */
+		private LinkedList<String> selectedDetectors = new LinkedList<String>();
+
+		/**
+		 * Add button for detectors.
+		 */
+		private JButton addDetectorButton;
+		/**
+		 * Remove button for detectors.
+		 */
+		private JButton removeDetectorButton;
+		/**
+		 * Config button for detectors.
+		 */
+		private JButton configDetectorButton;
+		/**
+		 * Combobox for selecting detectors.
+		 */
+		private JList detectorCollection;
+		/**
+		 * List of selected detectors.
+		 */
+		JTable detectOpsTab = null;
+		/**
+		 * Model for the detector table.
+		 */
+		CellCounterOpsTableModel detectOpsTabModel;
+		/**
+		 * Target types of selected detectors.
+		 */
+		Vector<Integer> detectorMarkerTypes = new Vector<Integer>();
+
+		/**
+		 * Default constructor.
+		 * @throws IllegalAccessException Thrown in case of failure.
+		 * @throws InstantiationException Thrown in case of failure.
+		 */
+		public CellCounterDetectOperatorConfigPanel() 
+				throws ALDDataIOProviderException, InstantiationException, 
+					IllegalAccessException {
+			this.buildMainPanel();
+		}
+
+		/**
+		 * Disables graphical elements to prohibit value changes.
+		 */
+		public void disableComponent() {
+			if (this.addDetectorButton != null)
+				this.addDetectorButton.setEnabled(false);
+			if (this.removeDetectorButton != null)
+				this.removeDetectorButton.setEnabled(false);
+			if (this.configDetectorButton != null)
+				this.configDetectorButton.setEnabled(false);
+			if (this.detectOpsTab != null)
+				this.detectOpsTab.setEnabled(false);
+		}
+
+		/**
+		 * Enables graphical elements to allow for value changes.
+		 */
+		public void enableComponent() {
+			if (this.addDetectorButton != null)
+				this.addDetectorButton.setEnabled(true);
+			if (this.removeDetectorButton != null)
+				this.removeDetectorButton.setEnabled(true);
+			if (this.configDetectorButton != null)
+				this.configDetectorButton.setEnabled(true);
+			if (this.detectOpsTab != null)
+				this.detectOpsTab.setEnabled(true);
+		}
+
+		/**
+		 * Releases all graphical components associcated with this provider.
+		 */
+		public void dispose() {
+			this.dispose();
+		}
+
+		/**
+		 * Extracts current collection data.
+		 * 
+		 * @param field	Field of collection elements.
+		 * @param cl	Class of collection elements.
+		 * @return	Current collection.
+		 * @throws ALDDataIOException 
+		 */
+		@SuppressWarnings("null")
+		public Vector<CellCounterDetectOperator> getSelectedDetectors() 
+				throws ALDDataIOException {
+			// get number of entries in table
+			int rows = this.detectOpsTab.getRowCount();
+			if (rows == 0)
+				return null;
+
+			MTBSet_ActiveContourEnergy energySet = null;
+			String energyType = "";
+			if (cl.equals(MTBSet_SnakeEnergyDerivable.class)) {
+				energySet = new MTBSet_SnakeEnergyDerivable();
+				energyType = "snakes_derivable";
+			}
+			else if (cl.equals(MTBSet_SnakeEnergyComputable.class)) {
+				energySet = new MTBSet_SnakeEnergyComputable();
+				energyType = "snakes_computable";
+			}
+			else if (cl.equals(MTBSet_LevelEnergyDerivable.class)) {
+				energySet = new MTBSet_LevelEnergyDerivable();
+				energyType = "levelsets";
+			}
+			for (int r = 0; r < rows; ++r) {
+				String ename = (String)this.detectOpsTabModel.getValueAt(r, 0);
+				Class<?> c = this.classNameMapping.get(ename).getClass();
+//				MTBActiveContourEnergyDerivable energy = 
+//						(MTBActiveContourEnergyDerivable)this.energyConfWins.get(ename).
+//						readData(field,c);
+//				if (energyType.equals("snakes_derivable"))
+//					((MTBSet_SnakeEnergyDerivable)energySet).addEnergy(
+//							(MTBSnakeEnergyDerivable)energy, Double.valueOf(
+//									(String)(this.energyTabModel.getValueAt(r, 1))).doubleValue());
+//				else if (energyType.equals("snakes_computable"))
+//					((MTBSet_SnakeEnergyComputable)energySet).addEnergy(
+//							(MTBSnakeEnergyComputable)energy, Double.valueOf(
+//									(String)(this.energyTabModel.getValueAt(r, 1))).doubleValue());
+//				else if (energyType.equals("levelsets"))
+//					((MTBSet_LevelEnergyDerivable)energySet).addEnergy(
+//							(MTBLevelsetEnergyDerivable)energy,	Double.valueOf(
+//									(String)(this.energyTabModel.getValueAt(r, 1))).doubleValue());
+			}
+			return energySet;
+		}
+
+		/**
+		 * Build the main panel for configuring the list of energies.
+		 * @throws IllegalAccessException Thrown in case of failure.
+		 * @throws InstantiationException Thrown in case of failure.
+		 */
+		@SuppressWarnings("rawtypes")
+		private void buildMainPanel() throws InstantiationException {
+
+			BoxLayout pgr = new BoxLayout(this, BoxLayout.Y_AXIS);
+			this.setLayout(pgr);
+			this.setMaximumSize(new Dimension(200,400));
+
+			// temporary local variables
+			JLabel tmpLab = null;
+			JPanel tmpPanel = null;
+			FlowLayout fl = null;
+
+			fl = new FlowLayout();
+			fl.setAlignment(FlowLayout.LEFT);
+			tmpPanel = new JPanel();
+			tmpPanel.setLayout(fl);
+			tmpLab = new JLabel("Available object detectors: ");
+			tmpPanel.add(tmpLab);
+			this.add(tmpPanel);
+
+			// list of available energies
+			fl = new FlowLayout();
+			fl.setAlignment(FlowLayout.LEFT);
+			tmpPanel = new JPanel();
+			tmpPanel.setLayout(fl);
+
+			// check which energy set to handle
+			this.availableClasses= 
+				ALDClassInfo.lookupExtendingClasses(CellCounterDetectOperator.class);
+
+			this.classNameMapping = new HashMap<String, CellCounterDetectOperator>();
+			Vector<String> energyList = new Vector<String>();
+			for (Class c : this.availableClasses) {
+				System.out.println(c);
+				CellCounterDetectOperator dOp;
+				try {
+					dOp = (CellCounterDetectOperator)c.newInstance();
+					String cname = dOp.getShortName();
+					this.classNameMapping.put(cname, dOp);
+					energyList.add(cname);
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} 
+			}
+			// sort list of available energies lexicographically
+			Collections.sort(energyList);
+
+			this.detectorCollection = new JList(energyList);
+			this.detectorCollection.ensureIndexIsVisible(1);
+			this.detectorCollection.setSelectionMode(
+					ListSelectionModel.SINGLE_SELECTION);
+			this.detectorCollection.setEnabled(true);
+			this.detectorCollection.setPreferredSize(new Dimension(200,100));
+			JScrollPane scrollPane = new JScrollPane();
+			scrollPane.setViewportView(this.detectorCollection);
+			scrollPane.setAutoscrolls(true);
+			scrollPane.setPreferredSize(new Dimension(200,100));
+			this.add(scrollPane);
+
+			tmpPanel = new JPanel();
+			this.addDetectorButton = new JButton("   Add detector   ");
+			this.addDetectorButton.setActionCommand("addDetector");
+			this.addDetectorButton.addActionListener(this);
+			tmpPanel.add(this.addDetectorButton);
+			this.add(tmpPanel);
+
+			fl = new FlowLayout();
+			fl.setAlignment(FlowLayout.LEFT);
+			tmpPanel = new JPanel();
+			tmpPanel.setLayout(fl);
+			tmpLab = new JLabel("Selected detectors: ");
+			tmpPanel.add(tmpLab);
+			this.add(tmpPanel);
+
+			// selected energies table
+			tmpPanel = new JPanel();
+			tmpPanel.setMaximumSize(new Dimension(200,200));
+			this.detectOpsTabModel= new CellCounterOpsTableModel(0, 2);
+			this.detectOpsTabModel.addTableModelListener(this);
+			this.detectOpsTabModel.setColumnIdentifiers(
+					new Object[]{"Detector","Type"});
+			this.detectOpsTab = new JTable(this.detectOpsTabModel);
+			this.detectOpsTab.getColumnModel().getColumn(0).setPreferredWidth(150);
+			this.detectOpsTab.getColumnModel().getColumn(1).setPreferredWidth(50);
+			DefaultTableCellRenderer cr = new DefaultTableCellRenderer();
+			cr.setHorizontalAlignment(JLabel.CENTER);
+			this.detectOpsTab.getColumnModel().getColumn(1).setCellRenderer(cr);
+			this.detectOpsTab.setPreferredSize(new Dimension(200,100));
+			scrollPane= new JScrollPane();
+			scrollPane.setViewportView(this.detectOpsTab);
+			scrollPane.setAutoscrolls(true);
+			scrollPane.setPreferredSize(new Dimension(200,100));
+			tmpPanel.add(scrollPane);
+			this.add(tmpPanel);
+
+			// add remove and configure buttons
+			GridLayout gl = new GridLayout(1,2);
+			tmpPanel = new JPanel();
+			tmpPanel.setLayout(gl);
+			this.configDetectorButton = new JButton(" Configure...  ");
+			this.configDetectorButton.setActionCommand("configDetector");
+			this.configDetectorButton.addActionListener(this);
+			this.removeDetectorButton = new JButton("     Remove       ");
+			this.removeDetectorButton.setActionCommand("removeDetector");
+			this.removeDetectorButton.addActionListener(this);
+			tmpPanel.add(this.removeDetectorButton);
+			tmpPanel.add(this.configDetectorButton);
+			this.add(tmpPanel);
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String cmd = e.getActionCommand(); 
+			
+			// handle configuration actions
+			if (e.getActionCommand() == "addDetector") {
+				// get ID from GUI
+				String energy = (String)this.detectorCollection.getSelectedValue();
+				if (this.selectedDetectors.contains(energy))
+					return;
+				// add new energy to selection
+				this.selectedDetectors.add(energy);
+				Object [] newRow = new Object[]{energy,"1"};
+				this.detectorMarkerTypes.add(new Integer(1));
+				this.detectOpsTabModel.addRow(newRow);
+			}
+			else if (e.getActionCommand() == "removeDetector") {
+				// get selected row from table
+				if (this.detectOpsTab.getSelectedRow() != -1) {
+					int entry = this.detectOpsTab.getSelectedRow();
+					this.selectedDetectors.remove(entry);
+					this.detectorMarkerTypes.remove(entry);
+					this.detectOpsTabModel.removeRow(entry);
+				}
+			}
+			else if (e.getActionCommand() == "configDetector") {
+				// get selected row from table
+				if (this.detectOpsTab.getSelectedRow() != -1) {
+					int entry = this.detectOpsTab.getSelectedRow();
+					String energy = (String)this.detectOpsTabModel.getValueAt(entry, 0);
+					// open the corresponding window
+					this.classNameMapping.get(energy).openConfigFrame();
+				}
+			}
+		}		
+
+		@Override
+		public void tableChanged(TableModelEvent e) {
+			// ignore all events except updates
+			if (   e.getType() == TableModelEvent.INSERT 
+					|| e.getType() == TableModelEvent.DELETE
+					|| e.getType() == TableModelEvent.UPDATE) {
+			}
+		}
+
+		/**
+		 * Internal CellCounter detector GUI table model.
+		 */
+		private class CellCounterOpsTableModel extends DefaultTableModel
+			implements TableModelListener {
+
+			/**
+			 * Default serial number.
+			 */
+			private static final long serialVersionUID = 1L;
+
+			/**
+			 * Default constructor.
+			 * 
+			 * @param row	Initial row count.
+			 * @param col	Initial col count.
+			 */
+			public CellCounterOpsTableModel(int row, int col) {
+				super(row,col);
+				this.addTableModelListener(this);
+			}
+
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				if (column == 0)
+					return false;
+				return super.isCellEditable(row, column);
+			}
+
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				int row = e.getFirstRow();
+				if (e.getType() == TableModelEvent.UPDATE && row != -1) {
+					if (CellCounterDetectOperatorConfigPanel.
+							this.detectOpsTabModel.getRowCount() > 0) {
+						Integer d = Integer.valueOf(
+							(String)CellCounterDetectOperatorConfigPanel.
+								this.detectOpsTabModel.getValueAt(row, 1));
+						CellCounterDetectOperatorConfigPanel.
+							this.detectorMarkerTypes.setElementAt(d, row);
+					}
+				}
+				if (CellCounterDetectOperatorConfigPanel.this.detectOpsTab != null)	
+					CellCounterDetectOperatorConfigPanel.this.detectOpsTab.tableChanged(e);
+			}
+		}
+	}
+
 	/*
 	 * Status listener interface, takes care of also updating particle detector.
 	 */
@@ -2322,7 +2708,8 @@ public class CellCounter extends JFrame
 	@Override
   public void addStatusListener(StatusListener statListener) {
 		this.m_statusListeners.add(statListener);	
-//		this.particleOp.addStatusListener(statListener);
+		for (CellCounterDetectOperator op: this.detectorOps)
+			op.addStatusListener(statListener);
   }
 
 	@Override
@@ -2330,13 +2717,15 @@ public class CellCounter extends JFrame
 		for (int i = 0; i < this.m_statusListeners.size(); i++) {
 			this.m_statusListeners.get(i).statusUpdated(e);
 		}
-//		this.particleOp.notifyListeners(e);
+		for (CellCounterDetectOperator op: this.detectorOps)
+			op.notifyListeners(e);
   }
 
 	@Override
   public void removeStatusListener(StatusListener statListener) {
 		this.m_statusListeners.remove(statListener);
-//		this.particleOp.removeStatusListener(statListener);
+		for (CellCounterDetectOperator op: this.detectorOps)
+			op.removeStatusListener(statListener);
   }
 
 	@Override
