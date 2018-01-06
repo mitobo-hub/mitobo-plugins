@@ -143,7 +143,6 @@ import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingCom
 import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeEvent;
 import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeListener;
 import de.unihalle.informatik.Alida.exceptions.ALDDataIOException;
-import de.unihalle.informatik.Alida.exceptions.ALDDataIOProviderException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDWorkflowException;
 import de.unihalle.informatik.Alida.gui.ALDChooseOpNameFrame;
@@ -198,10 +197,9 @@ public class CellCounter extends JFrame
 	private static final String QUIT = "Quit";
 	
 	// commands associated with particle/stromuli/stomata pre-segmentation
-	private static final String DETECT = "Detect";
-	public static final String CONFIGURE = "Configure Operator...";
-	private static final String FILTER = "Filter Particles...";
-	private static final String SELECT = "Select markers";
+	private static final String DETECT = "Run Detectors";
+	private static final String FILTER = "Filter Objects of Active Type...";
+	private static final String SELECT = "Select Markers";
     
 	/**
 	 * Default colors to be used for the first 8 markers.
@@ -251,19 +249,6 @@ public class CellCounter extends JFrame
 	
 	protected CellCounterDetectOperatorConfigPanel opConfPanel;
 	
-	// checkbox to enable/disable plastid detection
-//	protected JCheckBox cbDetectPlastids;
-//	protected JSpinner spTypePlastids;
-//	protected SpinnerNumberModel spmTypePlastids;
-	// checkbox to enable/disable stromuli detection
-//	protected JCheckBox cbDetectStromuli;
-//	protected JSpinner spTypeStromuli;
-//	protected SpinnerNumberModel spmTypeStromuli;
-	// checkbox to enable/disable stomata detection
-//	protected JCheckBox cbDetectStomata;
-//	protected JSpinner spTypeStomata;
-//	protected SpinnerNumberModel spmTypeStomata;
-
 	protected ButtonGroup radioGrp;
 	protected ButtonGroup channelGrp;
 	protected JRadioButton ch1Button;
@@ -394,6 +379,8 @@ public class CellCounter extends JFrame
 	}
 
 	private void initGUI(){
+		JPanel tmpP;
+		
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		GridBagLayout gb = new GridBagLayout();
 		getContentPane().setLayout(new BorderLayout());
@@ -487,7 +474,9 @@ public class CellCounter extends JFrame
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
 		this.initializeButton = makeButton(INITIALIZE, "Initialize image to count");
 		gb.setConstraints(this.initializeButton,gbc);
-		this.statButtonPanel.add(this.initializeButton);
+		tmpP = new JPanel();
+		tmpP.add(this.initializeButton);
+		this.statButtonPanel.add(tmpP);
 
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
@@ -646,13 +635,7 @@ public class CellCounter extends JFrame
 		try {
 			this.opConfPanel = new CellCounterDetectOperatorConfigPanel();
 			this.statButtonPanel.add(this.opConfPanel);
-		} catch (ALDDataIOProviderException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -666,52 +649,31 @@ public class CellCounter extends JFrame
 		 * Initial object detection.
 		 */
 		
-		// add button to run detector
+		// add button to run detector and filter objects
+		tmpP = new JPanel();
+		tmpP.setLayout(new GridLayout(2, 1));
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridx=0;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
-//		if (this.detectorOp != null) {
-			this.detectButton = makeButton(DETECT,
-					"Perform pre-segmentation of particles.");
-			gb.setConstraints(this.detectButton,gbc);
-			this.statButtonPanel.add(this.detectButton);
-//		}
-//		else {
-//			JButton dummyButton = new JButton(DETECT);
-//			dummyButton.setEnabled(false);
-//			gb.setConstraints(dummyButton,gbc);
-//			this.statButtonPanel.add(dummyButton);
-//		}
+		this.detectButton = makeButton(DETECT,
+				"Perform pre-segmentation of objects.");
+		gb.setConstraints(this.detectButton,gbc);
+		tmpP.add(this.detectButton);
 
-		// add button to configure detector
-//		gbc = new GridBagConstraints();
-//		gbc.anchor = GridBagConstraints.NORTHWEST;
-//		gbc.fill = GridBagConstraints.BOTH;
-//		gbc.gridx=0;
-//		gbc.gridwidth = GridBagConstraints.REMAINDER;
-//		if (this.detectorConfigureButton != null) {
-//			gb.setConstraints(this.detectorConfigureButton,gbc);
-//			this.statButtonPanel.add(this.detectorConfigureButton);
-//		}
-//		else {
-//			JButton dummyButton = new JButton("Configure...");
-//			dummyButton.setEnabled(false);
-//			gb.setConstraints(dummyButton,gbc);
-//			this.statButtonPanel.add(dummyButton);
-//		}
-
-		// filter particles
+		// filter objects
 		gbc = new GridBagConstraints();
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridx=0;
 		gbc.gridwidth = GridBagConstraints.REMAINDER;
 		this.filterButton = makeButton(FILTER, 
-				"Filter particles according to size.");
+				"Filter objects of selected type.");
 		gb.setConstraints(this.filterButton,gbc);
-		this.statButtonPanel.add(this.filterButton);
+		tmpP.add(this.filterButton);
+		
+		this.statButtonPanel.add(tmpP);
 
 		// show contours or do not show them
 		gbc = new GridBagConstraints();
@@ -1162,24 +1124,12 @@ public class CellCounter extends JFrame
   public void actionPerformed(ActionEvent event) {
 		String command = event.getActionCommand();
 
-//		int plastidMarkerIndex = 
-//				((Integer)this.spmTypePlastids.getValue()).intValue() - 1;
-//		int typeStromuli = 
-//				((Integer)this.spmTypeStromuli.getValue()).intValue() - 1;
-//		int typeStomata = 
-//				((Integer)this.spmTypeStomata.getValue()).intValue() - 1;
-
 		// add another type of marker
 		if (command.compareTo(ADD) == 0) {
 			int i = this.dynRadioVector.size() + 1;
 			this.dynGrid.setRows(i);
 			this.dynButtonPanel.add(makeDynRadioButton(i,null));
 			validateLayout();
-			
-			// update spinners
-//			this.spmTypePlastids.setMaximum(new Integer(i));
-//			this.spmTypeStromuli.setMaximum(new Integer(i));
-//			this.spmTypeStomata.setMaximum(new Integer(i));
 			
 			if (this.ic != null)
 				this.ic.setTypeVector(this.typeVector);
@@ -1208,25 +1158,6 @@ public class CellCounter extends JFrame
 				this.dynColorChooserVector.removeElementAt(
 						this.dynColorChooserVector.size()-1);
 			}
-			// update spinners
-//			Integer maxValue = new Integer(this.dynColorChooserVector.size());
-//			this.spmTypePlastids.setMaximum(maxValue);
-//			if (  ((Integer)this.spmTypePlastids.getValue()).intValue() 
-//					> maxValue.intValue()) 
-//				this.spmTypePlastids.setValue(maxValue);
-//			
-//			this.spmTypeStromuli.setMaximum(
-//					new Integer(this.dynColorChooserVector.size()));
-//			if (  ((Integer)this.spmTypeStromuli.getValue()).intValue() 
-//					> maxValue.intValue()) 
-//				this.spmTypeStromuli.setValue(maxValue);
-//			
-//			this.spmTypeStomata.setMaximum(
-//					new Integer(this.dynColorChooserVector.size()));
-//			if (  ((Integer)this.spmTypeStomata.getValue()).intValue() 
-//					> maxValue.intValue()) 
-//				this.spmTypeStomata.setValue(maxValue);
-
 			validateLayout();
 
 			if (this.ic != null)
@@ -1376,6 +1307,9 @@ public class CellCounter extends JFrame
 //					typeInfo 
 //						+= ", " + ((Integer)this.spmTypeStromuli.getValue()).toString();
 			Vector<Integer> types = this.opConfPanel.getConfiguredTypes();
+			if (types == null || types.isEmpty())
+				return;
+			
 			String typeInfo = new String();
 			boolean markersWillGetLost = false;
 			for (Integer t: types) {
@@ -1430,7 +1364,7 @@ public class CellCounter extends JFrame
 //			CellCntrMarkerVector pVec = 
 //				CellCounter.this.typeVector.get(plastidMarkerIndex);
 			CellCntrMarkerVector pVec = 
-					CellCounter.this.typeVector.get(this.currentMarkerVector.getType());
+				CellCounter.this.typeVector.get(this.currentMarkerVector.getType()-1);
 			if (this.pFilter == null) {
 				this.pFilter = new ParticleFilterFrame(this, pVec, 
 						this.detectImg, this.detectZSlice);
@@ -2445,7 +2379,6 @@ public class CellCounter extends JFrame
 		/**
 		 * Mapping of short names to detector objects.
 		 */
-		@SuppressWarnings("rawtypes")
 		private HashMap<String, CellCounterDetectOperator> classNameMapping = null;
 
 		/**
@@ -2468,7 +2401,7 @@ public class CellCounter extends JFrame
 		/**
 		 * Combobox for selecting detectors.
 		 */
-		private JList detectorCollection;
+		private JList<String> detectorCollection;
 		/**
 		 * List of selected detectors.
 		 */
@@ -2484,12 +2417,10 @@ public class CellCounter extends JFrame
 
 		/**
 		 * Default constructor.
-		 * @throws IllegalAccessException Thrown in case of failure.
 		 * @throws InstantiationException Thrown in case of failure.
 		 */
 		public CellCounterDetectOperatorConfigPanel() 
-				throws ALDDataIOProviderException, InstantiationException, 
-					IllegalAccessException {
+				throws InstantiationException {
 			this.buildMainPanel();
 		}
 
@@ -2606,24 +2537,23 @@ public class CellCounter extends JFrame
 				ALDClassInfo.lookupExtendingClasses(CellCounterDetectOperator.class);
 
 			this.classNameMapping = new HashMap<String, CellCounterDetectOperator>();
-			Vector<String> energyList = new Vector<String>();
+			Vector<String> detectorList = new Vector<String>();
 			for (Class c : this.availableClasses) {
-				System.out.println(c);
 				CellCounterDetectOperator dOp;
 				try {
 					dOp = (CellCounterDetectOperator)c.newInstance();
 					String cname = dOp.getShortName();
 					this.classNameMapping.put(cname, dOp);
-					energyList.add(cname);
+					detectorList.add(cname);
 				} catch (IllegalAccessException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} 
 			}
 			// sort list of available energies lexicographically
-			Collections.sort(energyList);
+			Collections.sort(detectorList);
 
-			this.detectorCollection = new JList(energyList);
+			this.detectorCollection = new JList<String>(detectorList);
 			this.detectorCollection.ensureIndexIsVisible(1);
 			this.detectorCollection.setSelectionMode(
 					ListSelectionModel.SINGLE_SELECTION);
@@ -2661,7 +2591,7 @@ public class CellCounter extends JFrame
 			this.detectOpsTab.getColumnModel().getColumn(0).setPreferredWidth(150);
 			this.detectOpsTab.getColumnModel().getColumn(1).setPreferredWidth(50);
 			DefaultTableCellRenderer cr = new DefaultTableCellRenderer();
-			cr.setHorizontalAlignment(JLabel.CENTER);
+			cr.setHorizontalAlignment(SwingConstants.CENTER);
 			this.detectOpsTab.getColumnModel().getColumn(1).setCellRenderer(cr);
 			this.detectOpsTab.setPreferredSize(new Dimension(200,100));
 			scrollPane= new JScrollPane();
@@ -2691,18 +2621,20 @@ public class CellCounter extends JFrame
 			String cmd = e.getActionCommand(); 
 			
 			// handle configuration actions
-			if (e.getActionCommand() == "addDetector") {
+			if (cmd.equals("addDetector")) {
 				// get ID from GUI
-				String energy = (String)this.detectorCollection.getSelectedValue();
-				if (this.selectedDetectors.contains(energy))
+				String detector = this.detectorCollection.getSelectedValue();
+				if (   detector == null
+						|| detector.isEmpty()
+						|| this.selectedDetectors.contains(detector))
 					return;
 				// add new energy to selection
-				this.selectedDetectors.add(energy);
-				Object [] newRow = new Object[]{energy,"1"};
+				this.selectedDetectors.add(detector);
+				Object [] newRow = new Object[]{detector,"1"};
 				this.detectorMarkerTypes.add(new Integer(1));
 				this.detectOpsTabModel.addRow(newRow);
 			}
-			else if (e.getActionCommand() == "removeDetector") {
+			else if (cmd.equals("removeDetector")) {
 				// get selected row from table
 				if (this.detectOpsTab.getSelectedRow() != -1) {
 					int entry = this.detectOpsTab.getSelectedRow();
@@ -2711,7 +2643,7 @@ public class CellCounter extends JFrame
 					this.detectOpsTabModel.removeRow(entry);
 				}
 			}
-			else if (e.getActionCommand() == "configDetector") {
+			else if (cmd.equals("configDetector")) {
 				// get selected row from table
 				if (this.detectOpsTab.getSelectedRow() != -1) {
 					int entry = this.detectOpsTab.getSelectedRow();
@@ -2728,6 +2660,7 @@ public class CellCounter extends JFrame
 			if (   e.getType() == TableModelEvent.INSERT 
 					|| e.getType() == TableModelEvent.DELETE
 					|| e.getType() == TableModelEvent.UPDATE) {
+				// nothing do to here...
 			}
 		}
 
