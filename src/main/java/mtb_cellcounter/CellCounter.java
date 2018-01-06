@@ -76,7 +76,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -85,7 +84,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -150,12 +148,10 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDWorkflowException;
 import de.unihalle.informatik.Alida.gui.ALDChooseOpNameFrame;
 import de.unihalle.informatik.Alida.helpers.ALDClassInfo;
-import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.Alida.operator.events.ALDControlEvent;
 import de.unihalle.informatik.Alida.operator.events.ALDControlEvent.ALDControlEventType;
 import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
 import de.unihalle.informatik.Alida.workflows.ALDWorkflow;
-import de.unihalle.informatik.Alida.workflows.ALDWorkflowNode.ALDWorkflowNodeState;
 import de.unihalle.informatik.Alida.workflows.ALDWorkflowNodeID;
 import de.unihalle.informatik.Alida.workflows.ALDWorkflow.ALDWorkflowContextType;
 import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEvent;
@@ -163,15 +159,9 @@ import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEventListener;
 import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowRunFailureInfo;
 import de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEvent.ALDWorkflowEventType;
 import de.unihalle.informatik.MiToBo.core.dataio.provider.swing.AwtColorDataIOSwing.ColorChooserPanel;
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBQuadraticCurve2D;
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
-import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShape;
-import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeCurve;
-import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeRegion;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.operators.CellCounterDetectOperator;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.xml.ReadXML;
@@ -212,9 +202,6 @@ public class CellCounter extends JFrame
 	public static final String CONFIGURE = "Configure Operator...";
 	private static final String FILTER = "Filter Particles...";
 	private static final String SELECT = "Select markers";
-	private static final String DETECTPLASTIDS = "Plastids";
-	private static final String DETECTSTROMULI = "Stromuli";
-	private static final String DETECTSTOMATA = "Stomata";
     
 	/**
 	 * Default colors to be used for the first 8 markers.
@@ -261,18 +248,21 @@ public class CellCounter extends JFrame
 	// spinner for selecting channel with boundary information
 	protected JSpinner spChannelBoundaries;
 	protected SpinnerNumberModel spmChannelBoundaries;
+	
+	protected CellCounterDetectOperatorConfigPanel opConfPanel;
+	
 	// checkbox to enable/disable plastid detection
-	protected JCheckBox cbDetectPlastids;
-	protected JSpinner spTypePlastids;
-	protected SpinnerNumberModel spmTypePlastids;
+//	protected JCheckBox cbDetectPlastids;
+//	protected JSpinner spTypePlastids;
+//	protected SpinnerNumberModel spmTypePlastids;
 	// checkbox to enable/disable stromuli detection
-	protected JCheckBox cbDetectStromuli;
-	protected JSpinner spTypeStromuli;
-	protected SpinnerNumberModel spmTypeStromuli;
+//	protected JCheckBox cbDetectStromuli;
+//	protected JSpinner spTypeStromuli;
+//	protected SpinnerNumberModel spmTypeStromuli;
 	// checkbox to enable/disable stomata detection
-	protected JCheckBox cbDetectStomata;
-	protected JSpinner spTypeStomata;
-	protected SpinnerNumberModel spmTypeStomata;
+//	protected JCheckBox cbDetectStomata;
+//	protected JSpinner spTypeStomata;
+//	protected SpinnerNumberModel spmTypeStomata;
 
 	protected ButtonGroup radioGrp;
 	protected ButtonGroup channelGrp;
@@ -322,7 +312,7 @@ public class CellCounter extends JFrame
 	/**
 	 * List of active/selected detectors.
 	 */
-	private Vector<CellCounterDetectOperator> detectorOps;
+	Vector<CellCounterDetectOperator> detectorOps;
 	
 	/**
 	 * Proxy object to run particle detector in thread mode.
@@ -356,6 +346,10 @@ public class CellCounter extends JFrame
 		this.txtFieldVector = new Vector<JTextField>();
 		this.dynRadioVector = new Vector<JRadioButton>();
 		this.dynColorChooserVector = new Vector<ALDSwingComponent>();
+		
+		// configure detectors
+		this.detectorOps = new Vector<>();
+		this.opProxy = new OperatorExecutionProxy();
 //		try {
 //	    this.detectorConfigureButton = new JButton(CONFIGURE);
 //	    this.detectorConfigureButton.setActionCommand(CONFIGURE);
@@ -650,7 +644,8 @@ public class CellCounter extends JFrame
 //		this.statButtonPanel.add(plPanel);
 
 		try {
-			this.statButtonPanel.add(new CellCounterDetectOperatorConfigPanel());
+			this.opConfPanel = new CellCounterDetectOperatorConfigPanel();
+			this.statButtonPanel.add(this.opConfPanel);
 		} catch (ALDDataIOProviderException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1167,12 +1162,12 @@ public class CellCounter extends JFrame
   public void actionPerformed(ActionEvent event) {
 		String command = event.getActionCommand();
 
-		int plastidMarkerIndex = 
-				((Integer)this.spmTypePlastids.getValue()).intValue() - 1;
-		int typeStromuli = 
-				((Integer)this.spmTypeStromuli.getValue()).intValue() - 1;
-		int typeStomata = 
-				((Integer)this.spmTypeStomata.getValue()).intValue() - 1;
+//		int plastidMarkerIndex = 
+//				((Integer)this.spmTypePlastids.getValue()).intValue() - 1;
+//		int typeStromuli = 
+//				((Integer)this.spmTypeStromuli.getValue()).intValue() - 1;
+//		int typeStomata = 
+//				((Integer)this.spmTypeStomata.getValue()).intValue() - 1;
 
 		// add another type of marker
 		if (command.compareTo(ADD) == 0) {
@@ -1182,9 +1177,9 @@ public class CellCounter extends JFrame
 			validateLayout();
 			
 			// update spinners
-			this.spmTypePlastids.setMaximum(new Integer(i));
-			this.spmTypeStromuli.setMaximum(new Integer(i));
-			this.spmTypeStomata.setMaximum(new Integer(i));
+//			this.spmTypePlastids.setMaximum(new Integer(i));
+//			this.spmTypeStromuli.setMaximum(new Integer(i));
+//			this.spmTypeStomata.setMaximum(new Integer(i));
 			
 			if (this.ic != null)
 				this.ic.setTypeVector(this.typeVector);
@@ -1214,23 +1209,23 @@ public class CellCounter extends JFrame
 						this.dynColorChooserVector.size()-1);
 			}
 			// update spinners
-			Integer maxValue = new Integer(this.dynColorChooserVector.size());
-			this.spmTypePlastids.setMaximum(maxValue);
-			if (  ((Integer)this.spmTypePlastids.getValue()).intValue() 
-					> maxValue.intValue()) 
-				this.spmTypePlastids.setValue(maxValue);
-			
-			this.spmTypeStromuli.setMaximum(
-					new Integer(this.dynColorChooserVector.size()));
-			if (  ((Integer)this.spmTypeStromuli.getValue()).intValue() 
-					> maxValue.intValue()) 
-				this.spmTypeStromuli.setValue(maxValue);
-			
-			this.spmTypeStomata.setMaximum(
-					new Integer(this.dynColorChooserVector.size()));
-			if (  ((Integer)this.spmTypeStomata.getValue()).intValue() 
-					> maxValue.intValue()) 
-				this.spmTypeStomata.setValue(maxValue);
+//			Integer maxValue = new Integer(this.dynColorChooserVector.size());
+//			this.spmTypePlastids.setMaximum(maxValue);
+//			if (  ((Integer)this.spmTypePlastids.getValue()).intValue() 
+//					> maxValue.intValue()) 
+//				this.spmTypePlastids.setValue(maxValue);
+//			
+//			this.spmTypeStromuli.setMaximum(
+//					new Integer(this.dynColorChooserVector.size()));
+//			if (  ((Integer)this.spmTypeStromuli.getValue()).intValue() 
+//					> maxValue.intValue()) 
+//				this.spmTypeStromuli.setValue(maxValue);
+//			
+//			this.spmTypeStomata.setMaximum(
+//					new Integer(this.dynColorChooserVector.size()));
+//			if (  ((Integer)this.spmTypeStomata.getValue()).intValue() 
+//					> maxValue.intValue()) 
+//				this.spmTypeStomata.setValue(maxValue);
 
 			validateLayout();
 
@@ -1323,11 +1318,11 @@ public class CellCounter extends JFrame
 		}
 		// detect particles
 		else if (command.compareTo(DETECT) == 0) {
-			ALDWorkflowNodeState state = this.opProxy.getOpState();
-			if (state == null) {
-				IJ.error("An error occurred during detection!");
-				return;
-			}
+//			ALDWorkflowNodeState state = this.opProxy.getOpState();
+//			if (state == null) {
+//				IJ.error("An error occurred during detection!");
+//				return;
+//			}
 //			if (state.equals(ALDWorkflowNodeState.READY)) {
 //				JOptionPane.showMessageDialog(CellCounter.this.getFocusOwner(), 
 //						"Particles already detected with current configuration!");
@@ -1364,22 +1359,32 @@ public class CellCounter extends JFrame
 			}
 
 			// warning that some markers may get lost!
-			if (this.typeVector.elementAt(plastidMarkerIndex).size() > 0) {
-				String typeInfo = ((Integer)this.spmTypePlastids.getValue()).toString();
-				int stomataMarkerIndex = 
-					(((Integer)this.spTypeStomata.getModel().getValue()).intValue()-1);
-				if (   this.cbDetectStomata.isEnabled() 
-						&& this.cbDetectStomata.isSelected() 
-						&& this.typeVector.elementAt(stomataMarkerIndex).size() > 0)
-					typeInfo 
-						+= ", " + ((Integer)this.spmTypeStomata.getValue()).toString();
-				int stromuliMarkerIndex = 
-						(((Integer)this.spTypeStromuli.getModel().getValue()).intValue()-1);
-				if (   this.cbDetectStromuli.isEnabled() 
-						&& this.cbDetectStromuli.isSelected() 
-						&& this.typeVector.elementAt(stromuliMarkerIndex).size() > 0)
-					typeInfo 
-						+= ", " + ((Integer)this.spmTypeStromuli.getValue()).toString();
+//			if (this.typeVector.elementAt(plastidMarkerIndex).size() > 0) {
+//				String typeInfo = ((Integer)this.spmTypePlastids.getValue()).toString();
+//				int stomataMarkerIndex = 
+//					(((Integer)this.spTypeStomata.getModel().getValue()).intValue()-1);
+//				if (   this.cbDetectStomata.isEnabled() 
+//						&& this.cbDetectStomata.isSelected() 
+//						&& this.typeVector.elementAt(stomataMarkerIndex).size() > 0)
+//					typeInfo 
+//						+= ", " + ((Integer)this.spmTypeStomata.getValue()).toString();
+//				int stromuliMarkerIndex = 
+//						(((Integer)this.spTypeStromuli.getModel().getValue()).intValue()-1);
+//				if (   this.cbDetectStromuli.isEnabled() 
+//						&& this.cbDetectStromuli.isSelected() 
+//						&& this.typeVector.elementAt(stromuliMarkerIndex).size() > 0)
+//					typeInfo 
+//						+= ", " + ((Integer)this.spmTypeStromuli.getValue()).toString();
+			Vector<Integer> types = this.opConfPanel.getConfiguredTypes();
+			String typeInfo = new String();
+			boolean markersWillGetLost = false;
+			for (Integer t: types) {
+				if (this.typeVector.elementAt(t.intValue()-1).size() > 0) {
+					markersWillGetLost = true;
+					typeInfo += t + " ";
+				}
+			}
+			if (markersWillGetLost) {
 				Object[] options = {"Continue", "Cancel"};
 				int n = JOptionPane.showOptionDialog(CellCounter.this,
 						"Attention, your markers of type(s) " + typeInfo + " will be lost!",
@@ -1392,22 +1397,14 @@ public class CellCounter extends JFrame
 				if (n == JOptionPane.NO_OPTION)
 					return;
 			}
+			
 			this.detectMode = true;
 			this.ic.setEditable(false);
+			
 			// delete markers in GUI
-			this.typeVector.setElementAt(
-					new CellCntrMarkerVector(plastidMarkerIndex+1), plastidMarkerIndex);
-			// stomata are to be detected, reset another marker type
-			if (   this.cbDetectStomata.isEnabled() 
-					&& this.cbDetectStomata.isSelected()) {
+			for (Integer t: types) {
 				this.typeVector.setElementAt(
-						new CellCntrMarkerVector(typeStomata+1), typeStomata);
-			}
-			// stromuli are to be detected, reset another marker type
-			if (   this.cbDetectStromuli.isEnabled() 
-					&& this.cbDetectStromuli.isSelected()) {
-				this.typeVector.setElementAt(
-						new CellCntrMarkerVector(typeStromuli+1), typeStromuli);
+					new CellCntrMarkerVector(t.intValue()), t.intValue()-1);
 			}
 			if (this.ic!=null)
 				this.ic.repaint();	
@@ -1430,8 +1427,10 @@ public class CellCounter extends JFrame
 						null, options, options[0]);
 				return;				
 			}				
+//			CellCntrMarkerVector pVec = 
+//				CellCounter.this.typeVector.get(plastidMarkerIndex);
 			CellCntrMarkerVector pVec = 
-				CellCounter.this.typeVector.get(plastidMarkerIndex);
+					CellCounter.this.typeVector.get(this.currentMarkerVector.getType());
 			if (this.pFilter == null) {
 				this.pFilter = new ParticleFilterFrame(this, pVec, 
 						this.detectImg, this.detectZSlice);
@@ -1521,17 +1520,17 @@ public class CellCounter extends JFrame
 			}
 			this.ic.repaint();			
 		}
-		// options for object detection
-		else if (e.getItem().equals(this.cbDetectPlastids)){
-			if (e.getStateChange()==ItemEvent.SELECTED){
-				this.cbDetectStromuli.setEnabled(true);
-				this.cbDetectStomata.setEnabled(true);
-			}else{
-				// disable the other two checkboxes
-				this.cbDetectStromuli.setEnabled(false);
-				this.cbDetectStomata.setEnabled(false);
-			}
-		}
+//		// options for object detection
+//		else if (e.getItem().equals(this.cbDetectPlastids)){
+//			if (e.getStateChange()==ItemEvent.SELECTED){
+//				this.cbDetectStromuli.setEnabled(true);
+//				this.cbDetectStomata.setEnabled(true);
+//			}else{
+//				// disable the other two checkboxes
+//				this.cbDetectStromuli.setEnabled(false);
+//				this.cbDetectStomata.setEnabled(false);
+//			}
+//		}
 	}
 
 	/* (non-Javadoc)
@@ -1967,15 +1966,17 @@ public class CellCounter extends JFrame
 		protected JDialog progressMessageWin;
 
 		/**
-		 * Reference ID of the operator node in the Alida workflow;
+		 * Reference IDs of the operator nodes in the Alida workflow;
 		 */
-		public ALDWorkflowNodeID opNodeID;
+		public HashMap<ALDWorkflowNodeID, CellCounterDetectOperator> opNodeIDs;
 		
+		public HashMap<ALDWorkflowNodeID, Integer> opTypeIDs;
+
 		/**
 		 * Default constructor.
 		 * @param op	Operator object to be executed.
 		 */
-		public OperatorExecutionProxy(ALDOperator op) {
+		public OperatorExecutionProxy() {
 			try {
 				this.alidaWorkflow = 
 						new ALDWorkflow(" ",ALDWorkflowContextType.OTHER);
@@ -1984,17 +1985,10 @@ public class CellCounter extends JFrame
 				IJ.error("Workflow initialization failed! Exiting!");
 				System.exit(-1);
 			}
-			// init the operator and its workflow, i.e. add a single node to the flow
-			try {
-				this.opNodeID = this.alidaWorkflow.createNode(op);
-				this.valueChangeListener = new ValueChangeListener(this.opNodeID);
-				CellCounter.this.detectorOp.addValueChangeEventListener(
-						this.valueChangeListener);
-			} catch (ALDWorkflowException ex) {
-				JOptionPane.showMessageDialog(null, "Instantiation of operator \""
-						+ op.getName() + "\" failed!\n", 
-						"Error", JOptionPane.ERROR_MESSAGE);
-			}
+			// init the operator and its workflow, i.e. add all operator nodes
+			this.opNodeIDs = new HashMap<>();
+			this.opTypeIDs = new HashMap<>();
+
 			// process workflow events
 			this.processWorkflowEventQueue();
 			
@@ -2007,7 +2001,8 @@ public class CellCounter extends JFrame
 		 */
 		public void nodeParameterChanged() {
 			try {
-	      this.alidaWorkflow.nodeParameterChanged(this.opNodeID);
+				for (ALDWorkflowNodeID nid : this.opNodeIDs.keySet())
+					this.alidaWorkflow.nodeParameterChanged(nid);
       } catch (ALDWorkflowException e) {
       	IJ.error("Workflow interaction failed!");
       }
@@ -2017,21 +2012,21 @@ public class CellCounter extends JFrame
 		 * Request the state of the operator workflow node.
 		 * @return	State of the node.
 		 */
-		public ALDWorkflowNodeState getOpState() {
-      try {
-      	return this.alidaWorkflow.getState(this.opNodeID);
-      } catch (ALDWorkflowException e) {
-      	IJ.error("Workflow interaction failed!");
-	      return null;
-      }
-		}
+//		public ALDWorkflowNodeState getOpState() {
+//      try {
+//      	return this.alidaWorkflow.getState(this.opNodeID);
+//      } catch (ALDWorkflowException e) {
+//      	IJ.error("Workflow interaction failed!");
+//	      return null;
+//      }
+//		}
 		
 		/**
 		 * Setup the window for informing the user about progress.
 		 */
 		protected void initProgressWin() {
 			String message = 
-					new String("The particle detector is running, this \n" 
+					new String("The selected detectors are running, this \n" 
 										+ "may take some moments, please wait...");
 			final JOptionPane optionPane = new JOptionPane(message, 
 					JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, 
@@ -2065,20 +2060,46 @@ public class CellCounter extends JFrame
 		/**
 		 * Executes the workflow.
 		 */
-		public void runWorkflow() {
+		protected void runWorkflow() {
+
+			for (ALDWorkflowNodeID nid: this.opNodeIDs.keySet())
+				try {
+					this.alidaWorkflow.removeNode(nid);
+				} catch (ALDWorkflowException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			this.opNodeIDs.clear();
+			this.opTypeIDs.clear();
+			HashMap<Integer, CellCounterDetectOperator> detectors =
+				CellCounter.this.opConfPanel.getSelectedDetectors();
+			for (Integer t: detectors.keySet()) {
+				CellCounterDetectOperator op = detectors.get(t);
+				try {
+					ALDWorkflowNodeID id = this.alidaWorkflow.createNode(op); 
+					this.opNodeIDs.put(id, op);
+					this.opTypeIDs.put(id, t);
+					this.valueChangeListener = new ValueChangeListener(id);
+					op.addStatusListener(CellCounter.this);
+					op.addValueChangeEventListener(this.valueChangeListener);
+				} catch (ALDWorkflowException ex) {
+					JOptionPane.showMessageDialog(null, "Instantiation of operator \""
+							+ op.getName() + "\" failed!\n", 
+							"Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+
 			try {
-				// configure operator
-				CellCounter.this.detectorOp.setInputImage(CellCounter.this.detectImg);
-				CellCounter.this.detectorOp.setDoPlastidDetection(
-						CellCounter.this.cbDetectPlastids.isSelected());
-				CellCounter.this.detectorOp.setDoStromuliDetection(
-						 CellCounter.this.cbDetectStromuli.isEnabled()
-					&& CellCounter.this.cbDetectStromuli.isSelected());
-				CellCounter.this.detectorOp.setDoStomataDetection(
-					   CellCounter.this.cbDetectStomata.isEnabled()
-					&& CellCounter.this.cbDetectStomata.isSelected());
-				// verify configuration once again
-				this.alidaWorkflow.nodeParameterChanged(this.opNodeID);
+				// configure operators
+				CellCounter.this.detectorOps.clear();
+				for (ALDWorkflowNodeID nid : this.opNodeIDs.keySet()) {
+					CellCounterDetectOperator op = this.opNodeIDs.get(nid);
+					CellCounter.this.detectorOps.add(op);
+					op.setInputImage(CellCounter.this.detectImg);
+					op.setSliceZid(CellCounter.this.detectZSlice);
+					// verify configuration once again
+					this.alidaWorkflow.nodeParameterChanged(nid);
+				}
 				// execute the node/workflow
 				this.alidaWorkflow.handleALDControlEvent(
 						new ALDControlEvent(this, ALDControlEventType.RUN_EVENT));
@@ -2123,6 +2144,7 @@ public class CellCounter extends JFrame
 			{
 			// some events are simply ignored in this context...
 			case ADD_NODE:
+			case DELETE_NODE:
 			case EXECUTION_FINISHED:
 			case NODE_STATE_CHANGE:				
 			case RENAME:
@@ -2157,133 +2179,199 @@ public class CellCounter extends JFrame
 				break;
 			case SHOW_RESULTS:
 				this.progressMessageWin.setVisible(false);
-				MTBRegion2DSet particles = 
-					CellCounter.this.detectorOp.getResultPlastidRegions();
+				ALDWorkflowNodeID nid = (ALDWorkflowNodeID)event.getInfo();
+				
+				Vector<CellCntrMarker> seg = 
+						this.opNodeIDs.get(nid).getDetectionResults();
+				int resultMarkerIndex = this.opTypeIDs.get(nid).intValue()-1;
+				CellCounter.this.currentMarkerVector =
+					CellCounter.this.typeVector.get(resultMarkerIndex);
+				for (CellCntrMarker m: seg)
+					CellCounter.this.currentMarkerVector.add(m);
+				try {
+					Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
+							Color.class, 
+							CellCounter.this.dynColorChooserVector.get(resultMarkerIndex));
+					CellCounter.this.currentMarkerVector.setColor(cc);
+				} catch (ALDDataIOException e) {
+					IJ.error("Setting color failed!");
+				}
+				CellCounter.this.ic.setCurrentMarkerVector(
+						CellCounter.this.currentMarkerVector);
+
+//				int plastidMarkerIndex = 
+//						(((Integer)CellCounter.this.spTypePlastids.getModel().getValue())
+//								.intValue()-1);
+//					CellCounter.this.currentMarkerVector =
+//							CellCounter.this.typeVector.get(plastidMarkerIndex);
+//					CellCounter.this.currentMarkerVector.setSegmentationData(res);
+//					for (int i=0; i<particles.size(); ++i) {
+//						MTBRegion2D reg = particles.elementAt(i);
+//						// calculate average intensity
+//						double intensity = 0; 
+//						for (Point2D.Double p: reg.getPoints()) {
+//							intensity += CellCounter.this.detectImg.getValueDouble(
+//								(int)p.x, (int)p.y,	0);
+//						}
+//						CellCntrMarkerShape s = 
+//							new CellCntrMarkerShapeRegion(particles.get(i));
+//						s.setAvgIntensity(intensity/reg.getArea());
+//						CellCntrMarker marker = new CellCntrMarker(
+//							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
+//								CellCounter.this.detectZSlice, s); 
+//						CellCounter.this.currentMarkerVector.add(marker);
+//					}
+//					if (CellCounter.this.pFilter != null) {
+//						ParticleFilterFrame.filterMarkerRegions(
+//							CellCounter.this.currentMarkerVector, 
+//							CellCounter.this.detectZSlice,
+//								CellCounter.this.pFilter.getMinSizeValue(),
+//									CellCounter.this.pFilter.getMaxSizeValue(),
+//										CellCounter.this.pFilter.getMinIntensityValue(),
+//											CellCounter.this.pFilter.getMaxIntensityValue());
+//						CellCounter.this.pFilter.updateMarkerData(
+//							CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
+//								CellCounter.this.detectZSlice);
+//					}
+//					try {
+//						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
+//								Color.class, 
+//								CellCounter.this.dynColorChooserVector.get(plastidMarkerIndex));
+//						CellCounter.this.currentMarkerVector.setColor(cc);
+//					} catch (ALDDataIOException e) {
+//						IJ.error("Setting color failed!");
+//					}
+//					CellCounter.this.ic.setCurrentMarkerVector(
+//							CellCounter.this.currentMarkerVector);
+//				}
+
+//				MTBRegion2DSet particles = 
+//					CellCounter.this.detectorOp.getResultPlastidRegions();
 //				CellCntrSegResult res = null;
 //				if (particles != null) {
 //					res = new CellCntrSegResultRegions(
 //							CellCounter.this.detectImg,	particles);
 //				}
-				MTBRegion2DSet stromuli = 
-						CellCounter.this.detectorOp.getResultStromuliRegions();
+//				MTBRegion2DSet stromuli = 
+//						CellCounter.this.detectorOp.getResultStromuliRegions();
 //				CellCntrSegResult resStromuli = null;
 //				if (stromuli != null) {
 //					resStromuli = new CellCntrSegResultRegions(
 //							CellCounter.this.detectImg,	stromuli);
 //				}
-				Vector<MTBQuadraticCurve2D> stomata = 
-						CellCounter.this.detectorOp.getResultStomataRegions();
+//				Vector<MTBQuadraticCurve2D> stomata = 
+//						CellCounter.this.detectorOp.getResultStomataRegions();
 //				CellCntrSegResult resStomata = null;
 //				if (stomata != null) {
 //					resStomata = new CellCntrSegResultCurves(
 //							CellCounter.this.detectImg,	stomata);
 //				}
 
-				// draw detected particles
-				if (particles != null) {
-					int plastidMarkerIndex = 
-						(((Integer)CellCounter.this.spTypePlastids.getModel().getValue())
-								.intValue()-1);
-					CellCounter.this.currentMarkerVector =
-							CellCounter.this.typeVector.get(plastidMarkerIndex);
+//				// draw detected particles
+//				if (particles != null) {
+//					int plastidMarkerIndex = 
+//						(((Integer)CellCounter.this.spTypePlastids.getModel().getValue())
+//								.intValue()-1);
+//					CellCounter.this.currentMarkerVector =
+//							CellCounter.this.typeVector.get(plastidMarkerIndex);
 //					CellCounter.this.currentMarkerVector.setSegmentationData(res);
-					for (int i=0; i<particles.size(); ++i) {
-						MTBRegion2D reg = particles.elementAt(i);
-						// calculate average intensity
-						double intensity = 0; 
-						for (Point2D.Double p: reg.getPoints()) {
-							intensity += CellCounter.this.detectImg.getValueDouble(
-								(int)p.x, (int)p.y,	0);
-						}
-						CellCntrMarkerShape s = 
-							new CellCntrMarkerShapeRegion(particles.get(i));
-						s.setAvgIntensity(intensity/reg.getArea());
-						CellCntrMarker marker = new CellCntrMarker(
-							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
-								CellCounter.this.detectZSlice, s); 
-						CellCounter.this.currentMarkerVector.add(marker);
-					}
-					if (CellCounter.this.pFilter != null) {
-						ParticleFilterFrame.filterMarkerRegions(
-							CellCounter.this.currentMarkerVector, 
-							CellCounter.this.detectZSlice,
-								CellCounter.this.pFilter.getMinSizeValue(),
-									CellCounter.this.pFilter.getMaxSizeValue(),
-										CellCounter.this.pFilter.getMinIntensityValue(),
-											CellCounter.this.pFilter.getMaxIntensityValue());
-						CellCounter.this.pFilter.updateMarkerData(
-							CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
-								CellCounter.this.detectZSlice);
-					}
-					try {
-						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
-								Color.class, 
-								CellCounter.this.dynColorChooserVector.get(plastidMarkerIndex));
-						CellCounter.this.currentMarkerVector.setColor(cc);
-					} catch (ALDDataIOException e) {
-						IJ.error("Setting color failed!");
-					}
-					CellCounter.this.ic.setCurrentMarkerVector(
-							CellCounter.this.currentMarkerVector);
-				}
-				
-				// draw detected stomata
-				if (stomata != null) {
-					int stomataMarkerIndex = 
-						(((Integer)CellCounter.this.spTypeStomata.getModel().getValue())
-								.intValue()-1);
-					CellCounter.this.currentMarkerVector =
-							CellCounter.this.typeVector.get(stomataMarkerIndex);
-//					CellCounter.this.currentMarkerVector.setSegmentationData(
-//							resStomata);
-					for (int i=0; i<stomata.size(); ++i) {
-						MTBQuadraticCurve2D reg = stomata.elementAt(i);
-						CellCntrMarker marker = new CellCntrMarker(
-							(int)reg.getCenterX(), (int)reg.getCenterY(),
-								CellCounter.this.detectZSlice, 
-									new CellCntrMarkerShapeCurve(reg));
-						CellCounter.this.currentMarkerVector.add(marker);
-					}
-					try {
-						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(
-								null,	Color.class, 
-								CellCounter.this.dynColorChooserVector.get(stomataMarkerIndex));
-						CellCounter.this.currentMarkerVector.setColor(cc);
-					} catch (ALDDataIOException e) {
-						IJ.error("Setting color failed!");
-					}
-					CellCounter.this.ic.setCurrentMarkerVector(
-							CellCounter.this.currentMarkerVector);
-				}
-
-				// draw detected stromulis
-				int stromuliMarkerIndex = 
-						(((Integer)CellCounter.this.spTypeStromuli.getModel().getValue())
-								.intValue()-1);
-				if (stromuli != null) {
-					CellCounter.this.currentMarkerVector =
-							CellCounter.this.typeVector.get(stromuliMarkerIndex);
-//					CellCounter.this.currentMarkerVector.setSegmentationData(
-//							resStromuli);
-					for (int i=0; i<stromuli.size(); ++i) {
-						MTBRegion2D reg = stromuli.elementAt(i);
-						CellCntrMarker marker = new CellCntrMarker(
-							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
-								CellCounter.this.detectZSlice, 
-									new CellCntrMarkerShapeRegion(stromuli.get(i)));
-						CellCounter.this.currentMarkerVector.add(marker);
-					}
-					try {
-						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(
-								null,	Color.class, 
-								CellCounter.this.dynColorChooserVector.get(stromuliMarkerIndex));
-						CellCounter.this.currentMarkerVector.setColor(cc);
-					} catch (ALDDataIOException e) {
-						IJ.error("Setting color failed!");
-					}
-					CellCounter.this.ic.setCurrentMarkerVector(
-							CellCounter.this.currentMarkerVector);
-				}
+//					for (int i=0; i<particles.size(); ++i) {
+//						MTBRegion2D reg = particles.elementAt(i);
+//						// calculate average intensity
+//						double intensity = 0; 
+//						for (Point2D.Double p: reg.getPoints()) {
+//							intensity += CellCounter.this.detectImg.getValueDouble(
+//								(int)p.x, (int)p.y,	0);
+//						}
+//						CellCntrMarkerShape s = 
+//							new CellCntrMarkerShapeRegion(particles.get(i));
+//						s.setAvgIntensity(intensity/reg.getArea());
+//						CellCntrMarker marker = new CellCntrMarker(
+//							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
+//								CellCounter.this.detectZSlice, s); 
+//						CellCounter.this.currentMarkerVector.add(marker);
+//					}
+//					if (CellCounter.this.pFilter != null) {
+//						ParticleFilterFrame.filterMarkerRegions(
+//							CellCounter.this.currentMarkerVector, 
+//							CellCounter.this.detectZSlice,
+//								CellCounter.this.pFilter.getMinSizeValue(),
+//									CellCounter.this.pFilter.getMaxSizeValue(),
+//										CellCounter.this.pFilter.getMinIntensityValue(),
+//											CellCounter.this.pFilter.getMaxIntensityValue());
+//						CellCounter.this.pFilter.updateMarkerData(
+//							CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
+//								CellCounter.this.detectZSlice);
+//					}
+//					try {
+//						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
+//								Color.class, 
+//								CellCounter.this.dynColorChooserVector.get(plastidMarkerIndex));
+//						CellCounter.this.currentMarkerVector.setColor(cc);
+//					} catch (ALDDataIOException e) {
+//						IJ.error("Setting color failed!");
+//					}
+//					CellCounter.this.ic.setCurrentMarkerVector(
+//							CellCounter.this.currentMarkerVector);
+//				}
+//				
+//				// draw detected stomata
+//				if (stomata != null) {
+//					int stomataMarkerIndex = 
+//						(((Integer)CellCounter.this.spTypeStomata.getModel().getValue())
+//								.intValue()-1);
+//					CellCounter.this.currentMarkerVector =
+//							CellCounter.this.typeVector.get(stomataMarkerIndex);
+////					CellCounter.this.currentMarkerVector.setSegmentationData(
+////							resStomata);
+//					for (int i=0; i<stomata.size(); ++i) {
+//						MTBQuadraticCurve2D reg = stomata.elementAt(i);
+//						CellCntrMarker marker = new CellCntrMarker(
+//							(int)reg.getCenterX(), (int)reg.getCenterY(),
+//								CellCounter.this.detectZSlice, 
+//									new CellCntrMarkerShapeCurve(reg));
+//						CellCounter.this.currentMarkerVector.add(marker);
+//					}
+//					try {
+//						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(
+//								null,	Color.class, 
+//								CellCounter.this.dynColorChooserVector.get(stomataMarkerIndex));
+//						CellCounter.this.currentMarkerVector.setColor(cc);
+//					} catch (ALDDataIOException e) {
+//						IJ.error("Setting color failed!");
+//					}
+//					CellCounter.this.ic.setCurrentMarkerVector(
+//							CellCounter.this.currentMarkerVector);
+//				}
+//
+//				// draw detected stromulis
+//				int stromuliMarkerIndex = 
+//						(((Integer)CellCounter.this.spTypeStromuli.getModel().getValue())
+//								.intValue()-1);
+//				if (stromuli != null) {
+//					CellCounter.this.currentMarkerVector =
+//							CellCounter.this.typeVector.get(stromuliMarkerIndex);
+////					CellCounter.this.currentMarkerVector.setSegmentationData(
+////							resStromuli);
+//					for (int i=0; i<stromuli.size(); ++i) {
+//						MTBRegion2D reg = stromuli.elementAt(i);
+//						CellCntrMarker marker = new CellCntrMarker(
+//							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
+//								CellCounter.this.detectZSlice, 
+//									new CellCntrMarkerShapeRegion(stromuli.get(i)));
+//						CellCounter.this.currentMarkerVector.add(marker);
+//					}
+//					try {
+//						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(
+//								null,	Color.class, 
+//								CellCounter.this.dynColorChooserVector.get(stromuliMarkerIndex));
+//						CellCounter.this.currentMarkerVector.setColor(cc);
+//					} catch (ALDDataIOException e) {
+//						IJ.error("Setting color failed!");
+//					}
+//					CellCounter.this.ic.setCurrentMarkerVector(
+//							CellCounter.this.currentMarkerVector);
+//				}
 				
 				// update GUI
 				CellCounter.this.dynRadioVector.elementAt(
@@ -2448,48 +2536,38 @@ public class CellCounter extends JFrame
 		 * @return	Current collection.
 		 * @throws ALDDataIOException 
 		 */
-		@SuppressWarnings("null")
-		public Vector<CellCounterDetectOperator> getSelectedDetectors() 
-				throws ALDDataIOException {
+		public HashMap<Integer, CellCounterDetectOperator> getSelectedDetectors() {
 			// get number of entries in table
 			int rows = this.detectOpsTab.getRowCount();
 			if (rows == 0)
 				return null;
 
-			MTBSet_ActiveContourEnergy energySet = null;
-			String energyType = "";
-			if (cl.equals(MTBSet_SnakeEnergyDerivable.class)) {
-				energySet = new MTBSet_SnakeEnergyDerivable();
-				energyType = "snakes_derivable";
-			}
-			else if (cl.equals(MTBSet_SnakeEnergyComputable.class)) {
-				energySet = new MTBSet_SnakeEnergyComputable();
-				energyType = "snakes_computable";
-			}
-			else if (cl.equals(MTBSet_LevelEnergyDerivable.class)) {
-				energySet = new MTBSet_LevelEnergyDerivable();
-				energyType = "levelsets";
-			}
+			HashMap<Integer,CellCounterDetectOperator> ops = new HashMap<>();
 			for (int r = 0; r < rows; ++r) {
-				String ename = (String)this.detectOpsTabModel.getValueAt(r, 0);
-				Class<?> c = this.classNameMapping.get(ename).getClass();
-//				MTBActiveContourEnergyDerivable energy = 
-//						(MTBActiveContourEnergyDerivable)this.energyConfWins.get(ename).
-//						readData(field,c);
-//				if (energyType.equals("snakes_derivable"))
-//					((MTBSet_SnakeEnergyDerivable)energySet).addEnergy(
-//							(MTBSnakeEnergyDerivable)energy, Double.valueOf(
-//									(String)(this.energyTabModel.getValueAt(r, 1))).doubleValue());
-//				else if (energyType.equals("snakes_computable"))
-//					((MTBSet_SnakeEnergyComputable)energySet).addEnergy(
-//							(MTBSnakeEnergyComputable)energy, Double.valueOf(
-//									(String)(this.energyTabModel.getValueAt(r, 1))).doubleValue());
-//				else if (energyType.equals("levelsets"))
-//					((MTBSet_LevelEnergyDerivable)energySet).addEnergy(
-//							(MTBLevelsetEnergyDerivable)energy,	Double.valueOf(
-//									(String)(this.energyTabModel.getValueAt(r, 1))).doubleValue());
+				String ename = 
+						(String)this.detectOpsTabModel.getValueAt(r, 0);
+				Integer type = 
+						Integer.valueOf((String)this.detectOpsTabModel.getValueAt(r, 1));
+				ops.put(type, this.classNameMapping.get(ename));
 			}
-			return energySet;
+			return ops;
+		}
+
+		/**
+		 * Extract configured types.
+		 */
+		public Vector<Integer> getConfiguredTypes() {
+			// get number of entries in table
+			int rows = this.detectOpsTab.getRowCount();
+			if (rows == 0)
+				return null;
+
+			Vector<Integer> types = new Vector<>();
+			for (int r = 0; r < rows; ++r) {
+				types.add(
+					Integer.valueOf((String)this.detectOpsTabModel.getValueAt(r, 1)));
+			}
+			return types;
 		}
 
 		/**
@@ -2708,8 +2786,8 @@ public class CellCounter extends JFrame
 	@Override
   public void addStatusListener(StatusListener statListener) {
 		this.m_statusListeners.add(statListener);	
-		for (CellCounterDetectOperator op: this.detectorOps)
-			op.addStatusListener(statListener);
+//		for (CellCounterDetectOperator op: this.detectorOps)
+//			op.addStatusListener(statListener);
   }
 
 	@Override
@@ -2717,15 +2795,15 @@ public class CellCounter extends JFrame
 		for (int i = 0; i < this.m_statusListeners.size(); i++) {
 			this.m_statusListeners.get(i).statusUpdated(e);
 		}
-		for (CellCounterDetectOperator op: this.detectorOps)
-			op.notifyListeners(e);
+//		for (CellCounterDetectOperator op: this.detectorOps)
+//			op.notifyListeners(e);
   }
 
 	@Override
   public void removeStatusListener(StatusListener statListener) {
 		this.m_statusListeners.remove(statListener);
-		for (CellCounterDetectOperator op: this.detectorOps)
-			op.removeStatusListener(statListener);
+//		for (CellCounterDetectOperator op: this.detectorOps)
+//			op.removeStatusListener(statListener);
   }
 
 	@Override
