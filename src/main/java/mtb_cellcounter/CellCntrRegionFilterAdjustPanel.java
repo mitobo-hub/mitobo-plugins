@@ -46,13 +46,13 @@ import ij.measure.*;
  * @author ImageJ 1.0 Team (see notice on top)
  * @author Birgit Moeller
  */
-class ParticleFilterAdjustPanel extends JPanel implements Measurements,
+class CellCntrRegionFilterAdjustPanel extends JPanel implements Measurements,
 	Runnable, ActionListener, AdjustmentListener, FocusListener {
 
 	/**
 	 * Instance of parent particle filter frame.
 	 */
-	private ParticleFilterFrame adjuster; 
+	private CellCntrRegionFilterFrame adjuster; 
 
 	/**
 	 * ImageJ instance.
@@ -146,7 +146,7 @@ class ParticleFilterAdjustPanel extends JPanel implements Measurements,
 	 * @param minVal			Minimal value in dataset.
 	 * @param maxVal			Maximal value in dataset.
 	 */
-	public ParticleFilterAdjustPanel(ParticleFilterFrame psa, 
+	public CellCntrRegionFilterAdjustPanel(CellCntrRegionFilterFrame psa, 
 			String titleLabel, int [] data, int minVal, int maxVal) {
 		super();
 		this.adjuster = psa;

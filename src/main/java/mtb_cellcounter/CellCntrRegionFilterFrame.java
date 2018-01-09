@@ -49,7 +49,7 @@ import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCn
  * @author ImageJ 1.0 Team (see notice on top)
  * @author Birgit Moeller
  */
-public class ParticleFilterFrame extends JFrame implements Measurements,
+public class CellCntrRegionFilterFrame extends JFrame implements Measurements,
 	Runnable, ActionListener {
 
 	/**
@@ -93,12 +93,12 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	/**
 	 * Panel to filter regions according to size.
 	 */
-	private ParticleFilterAdjustPanel panelFilterSize;
+	private CellCntrRegionFilterAdjustPanel panelFilterSize;
 	
 	/**
 	 * Panel to filter regions according to average intensity.
 	 */
-	private ParticleFilterAdjustPanel panelFilterIntensity;
+	private CellCntrRegionFilterAdjustPanel panelFilterIntensity;
 	
 	/**
 	 * Window close button.
@@ -152,7 +152,7 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	 * @param image			Image from which segmentation data originates.
 	 * @param stackZ 		Coordinate of image in complete z-stack.
 	 */
-	public ParticleFilterFrame(CellCounter counter, 
+	public CellCntrRegionFilterFrame(CellCounter counter, 
 			CellCntrMarkerVector markers,	MTBImage image, int stackZ) {
 		super("Region Filter");
 		this.cc = counter;
@@ -164,7 +164,7 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 		
 		int y = 0;
 		this.panelFilterSize = 
-			new ParticleFilterAdjustPanel(this, "region sizes:", 
+			new CellCntrRegionFilterAdjustPanel(this, "region sizes:", 
 				this.histogramRegionSizes, this.minRegSize, this.maxRegSize);
 		c.gridx = 0;
 		c.gridy = y++;
@@ -172,7 +172,7 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 		c.insets = new Insets(0, 5, 10, 5);
 		add(this.panelFilterSize, c);
 		this.panelFilterIntensity = 
-			new ParticleFilterAdjustPanel(this, "region intensities:",
+			new CellCntrRegionFilterAdjustPanel(this, "region intensities:",
 				this.histogramRegionIntensities, 
 				this.minRegIntensity, this.maxRegIntensity);
 		c.gridx = 0;

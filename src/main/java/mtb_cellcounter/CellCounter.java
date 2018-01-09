@@ -211,7 +211,7 @@ public class CellCounter extends JFrame
 	/**
 	 * Frame for filtering segmented regions in a user-friendly manner.
 	 */
-	protected ParticleFilterFrame pFilter;
+	protected CellCntrRegionFilterFrame pFilter;
 	
 	/**
 	 * Keeps track of the marker vectors.
@@ -1366,7 +1366,7 @@ public class CellCounter extends JFrame
 			CellCntrMarkerVector pVec = 
 				CellCounter.this.typeVector.get(this.currentMarkerVector.getType()-1);
 			if (this.pFilter == null) {
-				this.pFilter = new ParticleFilterFrame(this, pVec, 
+				this.pFilter = new CellCntrRegionFilterFrame(this, pVec, 
 						this.detectImg, this.detectZSlice);
 			}
 			else {
@@ -2140,7 +2140,7 @@ public class CellCounter extends JFrame
 						CellCounter.this.currentMarkerVector);
 
 				if (CellCounter.this.pFilter != null) {
-					ParticleFilterFrame.filterMarkerRegions(
+					CellCntrRegionFilterFrame.filterMarkerRegions(
 						CellCounter.this.currentMarkerVector, 
 							CellCounter.this.detectZSlice,
 								CellCounter.this.pFilter.getMinSizeValue(),
