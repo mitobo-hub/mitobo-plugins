@@ -2024,6 +2024,11 @@ public class CellCounter extends JFrame
 			}
 
 			try {
+				HashMap<Integer, CellCntrMarkerVector> mVecs = new HashMap<>();
+				for (CellCntrMarkerVector v : CellCounter.this.typeVector) {
+					Integer id = v.getType();
+					mVecs.put(id, v);
+				}
 				// configure operators
 				CellCounter.this.detectorOps.clear();
 				for (ALDWorkflowNodeID nid : this.opNodeIDs.keySet()) {
@@ -2031,6 +2036,7 @@ public class CellCounter extends JFrame
 					CellCounter.this.detectorOps.add(op);
 					op.setInputImage(CellCounter.this.detectImg);
 					op.setSliceZid(CellCounter.this.detectZSlice);
+					op.setMarkerVectors(mVecs);
 					// verify configuration once again
 					this.alidaWorkflow.nodeParameterChanged(nid);
 				}
