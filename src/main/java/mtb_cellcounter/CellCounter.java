@@ -2134,184 +2134,23 @@ public class CellCounter extends JFrame
 							CellCounter.this.dynColorChooserVector.get(resultMarkerIndex));
 					CellCounter.this.currentMarkerVector.setColor(cc);
 				} catch (ALDDataIOException e) {
-					IJ.error("Setting color failed!");
+					IJ.error("Setting color of current type failed!");
 				}
 				CellCounter.this.ic.setCurrentMarkerVector(
 						CellCounter.this.currentMarkerVector);
 
-//				int plastidMarkerIndex = 
-//						(((Integer)CellCounter.this.spTypePlastids.getModel().getValue())
-//								.intValue()-1);
-//					CellCounter.this.currentMarkerVector =
-//							CellCounter.this.typeVector.get(plastidMarkerIndex);
-//					CellCounter.this.currentMarkerVector.setSegmentationData(res);
-//					for (int i=0; i<particles.size(); ++i) {
-//						MTBRegion2D reg = particles.elementAt(i);
-//						// calculate average intensity
-//						double intensity = 0; 
-//						for (Point2D.Double p: reg.getPoints()) {
-//							intensity += CellCounter.this.detectImg.getValueDouble(
-//								(int)p.x, (int)p.y,	0);
-//						}
-//						CellCntrMarkerShape s = 
-//							new CellCntrMarkerShapeRegion(particles.get(i));
-//						s.setAvgIntensity(intensity/reg.getArea());
-//						CellCntrMarker marker = new CellCntrMarker(
-//							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
-//								CellCounter.this.detectZSlice, s); 
-//						CellCounter.this.currentMarkerVector.add(marker);
-//					}
-//					if (CellCounter.this.pFilter != null) {
-//						ParticleFilterFrame.filterMarkerRegions(
-//							CellCounter.this.currentMarkerVector, 
-//							CellCounter.this.detectZSlice,
-//								CellCounter.this.pFilter.getMinSizeValue(),
-//									CellCounter.this.pFilter.getMaxSizeValue(),
-//										CellCounter.this.pFilter.getMinIntensityValue(),
-//											CellCounter.this.pFilter.getMaxIntensityValue());
-//						CellCounter.this.pFilter.updateMarkerData(
-//							CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
-//								CellCounter.this.detectZSlice);
-//					}
-//					try {
-//						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
-//								Color.class, 
-//								CellCounter.this.dynColorChooserVector.get(plastidMarkerIndex));
-//						CellCounter.this.currentMarkerVector.setColor(cc);
-//					} catch (ALDDataIOException e) {
-//						IJ.error("Setting color failed!");
-//					}
-//					CellCounter.this.ic.setCurrentMarkerVector(
-//							CellCounter.this.currentMarkerVector);
-//				}
-
-//				MTBRegion2DSet particles = 
-//					CellCounter.this.detectorOp.getResultPlastidRegions();
-//				CellCntrSegResult res = null;
-//				if (particles != null) {
-//					res = new CellCntrSegResultRegions(
-//							CellCounter.this.detectImg,	particles);
-//				}
-//				MTBRegion2DSet stromuli = 
-//						CellCounter.this.detectorOp.getResultStromuliRegions();
-//				CellCntrSegResult resStromuli = null;
-//				if (stromuli != null) {
-//					resStromuli = new CellCntrSegResultRegions(
-//							CellCounter.this.detectImg,	stromuli);
-//				}
-//				Vector<MTBQuadraticCurve2D> stomata = 
-//						CellCounter.this.detectorOp.getResultStomataRegions();
-//				CellCntrSegResult resStomata = null;
-//				if (stomata != null) {
-//					resStomata = new CellCntrSegResultCurves(
-//							CellCounter.this.detectImg,	stomata);
-//				}
-
-//				// draw detected particles
-//				if (particles != null) {
-//					int plastidMarkerIndex = 
-//						(((Integer)CellCounter.this.spTypePlastids.getModel().getValue())
-//								.intValue()-1);
-//					CellCounter.this.currentMarkerVector =
-//							CellCounter.this.typeVector.get(plastidMarkerIndex);
-//					CellCounter.this.currentMarkerVector.setSegmentationData(res);
-//					for (int i=0; i<particles.size(); ++i) {
-//						MTBRegion2D reg = particles.elementAt(i);
-//						// calculate average intensity
-//						double intensity = 0; 
-//						for (Point2D.Double p: reg.getPoints()) {
-//							intensity += CellCounter.this.detectImg.getValueDouble(
-//								(int)p.x, (int)p.y,	0);
-//						}
-//						CellCntrMarkerShape s = 
-//							new CellCntrMarkerShapeRegion(particles.get(i));
-//						s.setAvgIntensity(intensity/reg.getArea());
-//						CellCntrMarker marker = new CellCntrMarker(
-//							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
-//								CellCounter.this.detectZSlice, s); 
-//						CellCounter.this.currentMarkerVector.add(marker);
-//					}
-//					if (CellCounter.this.pFilter != null) {
-//						ParticleFilterFrame.filterMarkerRegions(
-//							CellCounter.this.currentMarkerVector, 
-//							CellCounter.this.detectZSlice,
-//								CellCounter.this.pFilter.getMinSizeValue(),
-//									CellCounter.this.pFilter.getMaxSizeValue(),
-//										CellCounter.this.pFilter.getMinIntensityValue(),
-//											CellCounter.this.pFilter.getMaxIntensityValue());
-//						CellCounter.this.pFilter.updateMarkerData(
-//							CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
-//								CellCounter.this.detectZSlice);
-//					}
-//					try {
-//						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
-//								Color.class, 
-//								CellCounter.this.dynColorChooserVector.get(plastidMarkerIndex));
-//						CellCounter.this.currentMarkerVector.setColor(cc);
-//					} catch (ALDDataIOException e) {
-//						IJ.error("Setting color failed!");
-//					}
-//					CellCounter.this.ic.setCurrentMarkerVector(
-//							CellCounter.this.currentMarkerVector);
-//				}
-//				
-//				// draw detected stomata
-//				if (stomata != null) {
-//					int stomataMarkerIndex = 
-//						(((Integer)CellCounter.this.spTypeStomata.getModel().getValue())
-//								.intValue()-1);
-//					CellCounter.this.currentMarkerVector =
-//							CellCounter.this.typeVector.get(stomataMarkerIndex);
-////					CellCounter.this.currentMarkerVector.setSegmentationData(
-////							resStomata);
-//					for (int i=0; i<stomata.size(); ++i) {
-//						MTBQuadraticCurve2D reg = stomata.elementAt(i);
-//						CellCntrMarker marker = new CellCntrMarker(
-//							(int)reg.getCenterX(), (int)reg.getCenterY(),
-//								CellCounter.this.detectZSlice, 
-//									new CellCntrMarkerShapeCurve(reg));
-//						CellCounter.this.currentMarkerVector.add(marker);
-//					}
-//					try {
-//						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(
-//								null,	Color.class, 
-//								CellCounter.this.dynColorChooserVector.get(stomataMarkerIndex));
-//						CellCounter.this.currentMarkerVector.setColor(cc);
-//					} catch (ALDDataIOException e) {
-//						IJ.error("Setting color failed!");
-//					}
-//					CellCounter.this.ic.setCurrentMarkerVector(
-//							CellCounter.this.currentMarkerVector);
-//				}
-//
-//				// draw detected stromulis
-//				int stromuliMarkerIndex = 
-//						(((Integer)CellCounter.this.spTypeStromuli.getModel().getValue())
-//								.intValue()-1);
-//				if (stromuli != null) {
-//					CellCounter.this.currentMarkerVector =
-//							CellCounter.this.typeVector.get(stromuliMarkerIndex);
-////					CellCounter.this.currentMarkerVector.setSegmentationData(
-////							resStromuli);
-//					for (int i=0; i<stromuli.size(); ++i) {
-//						MTBRegion2D reg = stromuli.elementAt(i);
-//						CellCntrMarker marker = new CellCntrMarker(
-//							(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
-//								CellCounter.this.detectZSlice, 
-//									new CellCntrMarkerShapeRegion(stromuli.get(i)));
-//						CellCounter.this.currentMarkerVector.add(marker);
-//					}
-//					try {
-//						Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(
-//								null,	Color.class, 
-//								CellCounter.this.dynColorChooserVector.get(stromuliMarkerIndex));
-//						CellCounter.this.currentMarkerVector.setColor(cc);
-//					} catch (ALDDataIOException e) {
-//						IJ.error("Setting color failed!");
-//					}
-//					CellCounter.this.ic.setCurrentMarkerVector(
-//							CellCounter.this.currentMarkerVector);
-//				}
+				if (CellCounter.this.pFilter != null) {
+					ParticleFilterFrame.filterMarkerRegions(
+						CellCounter.this.currentMarkerVector, 
+							CellCounter.this.detectZSlice,
+								CellCounter.this.pFilter.getMinSizeValue(),
+									CellCounter.this.pFilter.getMaxSizeValue(),
+										CellCounter.this.pFilter.getMinIntensityValue(),
+											CellCounter.this.pFilter.getMaxIntensityValue());
+					CellCounter.this.pFilter.updateMarkerData(
+						CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
+							CellCounter.this.detectZSlice);
+				}
 				
 				// update GUI
 				CellCounter.this.dynRadioVector.elementAt(

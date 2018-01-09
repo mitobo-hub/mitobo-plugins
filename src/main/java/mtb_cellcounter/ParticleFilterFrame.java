@@ -399,7 +399,7 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 	 * @param maxIntensity	Maximal intensity of valid markers.
 	 */
 	public static void filterMarkerRegions(CellCntrMarkerVector markers, int z,
-		int minSize, int maxSize, int minIntensity,	int maxIntensity) {
+			int minSize, int maxSize, int minIntensity,	int maxIntensity) {
 		int regionCount = markers.size();
 		for (int i=0; i<regionCount; ++i) {
 			if (markers.get(i).getZ() != z) {
@@ -409,11 +409,13 @@ public class ParticleFilterFrame extends JFrame implements Measurements,
 			markers.get(i).setActive();
 			CellCntrMarkerShape sr = markers.get(i).getShape();
 			if (sr != null) {
-				if (sr.getArea() < minSize	|| sr.getArea() > maxSize ) {
+				if (    !Double.isNaN(sr.getArea()) 
+						&& (sr.getArea() < minSize	|| sr.getArea() > maxSize) ) {
 					markers.get(i).setInactive();
 				}
-				else if (   sr.getAvgIntensity() < minIntensity
-						     || sr.getAvgIntensity() > maxIntensity) {
+				else if (   !Double.isNaN(sr.getAvgIntensity())
+							   && (   sr.getAvgIntensity() < minIntensity
+						         || sr.getAvgIntensity() > maxIntensity) ) {
 					markers.get(i).setInactive();
 				}
 			}
