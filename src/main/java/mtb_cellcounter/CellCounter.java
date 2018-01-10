@@ -118,6 +118,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
@@ -189,6 +190,7 @@ public class CellCounter extends JFrame
 	private static final String SHOWNUMBERS = "Show Numbers";
 	private static final String SHOWALL = "Show All";
 	private static final String RESET = "Reset";
+	private static final String RESETCOUNTER = "Reset Selected Counter";
 	private static final String EXPORTMARKERS = "Save Markers";
 	private static final String LOADMARKERS = "Load Markers";
 	private static final String EXPORTIMG = "Export Image";
@@ -320,6 +322,7 @@ public class CellCounter extends JFrame
 
 	public CellCounter(){
 		super("MiToBo Cell Counter");
+		this.setPreferredSize(new Dimension(675,1000));
 		this.m_statusListeners = new Vector<StatusListener>();
 		this.isJava14 = IJ.isJava14(); 
 		if(!this.isJava14){
@@ -392,7 +395,6 @@ public class CellCounter extends JFrame
 
 		//this panel will keep the dynamic GUI parts
 		this.dynPanel = new JPanel();
-		this.dynPanel.setBorder(BorderFactory.createTitledBorder("Counters"));
 		this.dynPanel.setLayout(gb);
 
 		//this panel keeps the radiobuttons
@@ -438,8 +440,7 @@ public class CellCounter extends JFrame
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.ipadx=5;
 		gb.setConstraints(this.dynPanel,gbc);
-		getContentPane().add(this.dynPanel);
-
+		
 		this.dynButtonPanel.add(makeDynRadioButton(1,null));
 		this.dynButtonPanel.add(makeDynRadioButton(2,null));
 		this.dynButtonPanel.add(makeDynRadioButton(3,null));
@@ -448,6 +449,35 @@ public class CellCounter extends JFrame
 		this.dynButtonPanel.add(makeDynRadioButton(6,null));
 		this.dynButtonPanel.add(makeDynRadioButton(7,null));
 		this.dynButtonPanel.add(makeDynRadioButton(8,null));
+
+		// add a scrollpane to the panel with counter configuration
+		JScrollPane scrollPane = new JScrollPane(this.dynPanel, 
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, 
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollPane.setAutoscrolls(true);
+
+		// configure panel for left side of window with counter configuration
+		// panel on top and a button for resetting individual counters at the 
+		// bottom
+		JPanel leftPane = new JPanel();
+		leftPane.setBorder(BorderFactory.createTitledBorder("Counters"));
+		leftPane.setLayout(new BorderLayout());
+		leftPane.add(scrollPane,BorderLayout.CENTER);
+		
+		gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.NORTHWEST;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridx=0;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		JButton td = makeButton(RESETCOUNTER, 
+				"Reset selected counter by deleting markers.");
+		gb.setConstraints(td, gbc);
+		tmpP = new JPanel();
+		tmpP.add(td);
+		leftPane.add(tmpP,BorderLayout.SOUTH);
+
+		// add the left panel to the window, i.e. its content pane
+		this.getContentPane().add(leftPane);
 
 		// create a "static" panel to hold control buttons
 		this.statButtonPanel = new JPanel();
@@ -1229,6 +1259,10 @@ public class CellCounter extends JFrame
 			if (!this.detectMode)
 				reset();
 			this.opProxy.nodeParameterChanged();
+		} else if (command.compareTo(RESETCOUNTER) == 0){
+			if (!this.detectMode)
+				resetSelectedCounter();
+			this.opProxy.nodeParameterChanged();
 		} else if (command.compareTo(RESULTS) == 0){
 			report();
 		}else if (command.compareTo(EXPORTMARKERS) == 0){
@@ -1542,6 +1576,9 @@ public class CellCounter extends JFrame
 		this.ic.measure();
 	}
 
+	/**
+	 * Delete all markers.
+	 */
 	public void reset(){
 		if (this.typeVector.size()<1){
 			return;
@@ -1553,6 +1590,20 @@ public class CellCounter extends JFrame
 			// delete borders and regions
 			mv.clearShapeData();
 		}
+		if (this.ic!=null)
+			this.ic.repaint();
+	}
+
+	/**
+	 * Delete markers of selected counter typel
+	 */
+	public void resetSelectedCounter(){
+		// no markers given, nothing to do
+		if (this.typeVector.size()<1){
+			return;
+		}
+		this.currentMarkerVector.clear();
+		this.currentMarkerVector.clearShapeData();
 		if (this.ic!=null)
 			this.ic.repaint();
 	}
