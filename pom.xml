@@ -4,7 +4,7 @@
 
   <groupId>de.unihalle.informatik.MiToBo</groupId>
   <artifactId>mitobo-plugins</artifactId>
-  <version>1.8.7-SNAPSHOT</version>
+  <version>1.8.7</version>
   <packaging>jar</packaging>
 
   <name>mitobo-plugins</name>
@@ -14,11 +14,11 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <YEAR>2017</YEAR>
+    <YEAR>2018</YEAR>
     <!-- define a default native directory, does not work in all cases,
 	 but avoids that Maven fails completely -->
     <native.libdir>lib64</native.libdir>
-    <mitobo.version>1.8.7-SNAPSHOT</mitobo.version>
+    <mitobo.version>1.8.7</mitobo.version>
   </properties>
 
   <licenses>
