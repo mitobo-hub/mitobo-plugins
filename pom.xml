@@ -15,10 +15,11 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <YEAR>2018</YEAR>
+    <!-- specify versions of dependencies -->
+    <mitobo.version>1.8.8-SNAPSHOT</mitobo.version>
     <!-- define a default native directory, does not work in all cases,
 	 but avoids that Maven fails completely -->
     <native.libdir>lib64</native.libdir>
-    <mitobo.version>1.8.8-SNAPSHOT</mitobo.version>
   </properties>
 
   <licenses>
@@ -396,11 +397,12 @@
   </distributionManagement>
 
   <dependencyManagement>
+    <!-- inherit versions of dependencies from mitobo -->
     <dependencies>
       <dependency>
-	<groupId>org.scijava</groupId>
-	<artifactId>pom-scijava</artifactId>
-	<version>19.2.0</version>
+	<groupId>de.unihalle.informatik.MiToBo</groupId>
+	<artifactId>mitobo</artifactId>
+	<version>${mitobo.version}</version>
 	<type>pom</type>
         <scope>import</scope>
       </dependency>
