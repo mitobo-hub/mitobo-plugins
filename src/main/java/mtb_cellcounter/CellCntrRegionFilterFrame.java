@@ -232,8 +232,9 @@ public class CellCntrRegionFilterFrame extends JFrame implements Measurements,
 			if (size < minSize)
 				minSize = size;
 		}
-		this.maxRegSize = (int)(maxSize + 0.5);
-		this.minRegSize = (int) minSize;
+		// add a tolerance to be able to filter all regions
+		this.maxRegSize = (int)(maxSize + 1);
+		this.minRegSize = (int)(minSize - 1);
 
 		// calculate histogram of region sizes
 		it = this.currentMarkers.iterator();
@@ -267,8 +268,11 @@ public class CellCntrRegionFilterFrame extends JFrame implements Measurements,
 					minimalRegIntensity = averageIntensity;
 			}
 		}
-		this.maxRegIntensity = (int)(maximalRegIntensity+0.5);
-		this.minRegIntensity = (int) minimalRegIntensity;
+		// make sure that maximal (integer) intensity is always bigger than maximal
+		// value found and minimal (integer) intensity is always smaller than 
+		// minimal value found to allow for filtering all regions properly
+		this.maxRegIntensity = (int)(maximalRegIntensity + 1.0);
+		this.minRegIntensity = (int)(Math.ceil(minimalRegIntensity - 1.0));
 
 		// calculate intensity histogram
 		this.histogramRegionIntensities = new int[256];

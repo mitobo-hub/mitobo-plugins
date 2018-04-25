@@ -271,7 +271,7 @@ class CellCntrRegionFilterAdjustPanel extends JPanel implements Measurements,
 		this.currentMarkerType = type;
 		this.minValue = minVal;
 		this.maxValue = maxVal;
-		this.dataRange = this.maxValue-this.minValue;		
+		this.dataRange = this.maxValue-this.minValue+1;		
 		this.currentSliderMinValue = this.minValue;
 		this.currentSliderMaxValue = this.maxValue;
 
