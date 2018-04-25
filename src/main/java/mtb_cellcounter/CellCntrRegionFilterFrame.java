@@ -284,18 +284,20 @@ public class CellCntrRegionFilterFrame extends JFrame implements Measurements,
 
 	/**
 	 * Update marker data.
-	 * @param data		New marker data.
-	 * @param image		New image.
-	 * @param stackZ 	Coordinate of image in complete z-stack.
+	 * @param data						New marker data.
+	 * @param image						New image.
+	 * @param stackZ 					Coordinate of image in complete z-stack.
+	 * @param ignoreHistory 	If true, markers are treated as first seen. 
 	 */
 	public void updateMarkerData(CellCntrMarkerVector data, 
-			MTBImage image, int stackZ) {
+			MTBImage image, int stackZ, boolean ignoreHistory) {
 		this.setMarkers(data, image, stackZ);
 		this.panelFilterSize.updatePanelGUI(data.getType(), 
-			this.histogramRegionSizes, this.minRegSize, this.maxRegSize);
+			this.histogramRegionSizes, this.minRegSize, this.maxRegSize, 
+				ignoreHistory);
 		this.panelFilterIntensity.updatePanelGUI(data.getType(), 
 			this.histogramRegionIntensities, 
-				this.minRegIntensity, this.maxRegIntensity);
+				this.minRegIntensity, this.maxRegIntensity, ignoreHistory);
 	}
 	
 	/**

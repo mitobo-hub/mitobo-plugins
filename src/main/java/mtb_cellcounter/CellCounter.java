@@ -1234,7 +1234,8 @@ public class CellCounter extends JFrame
 					this.detectImg = 
 							this.detectImg.convertType(MTBImageType.MTB_BYTE, true);
 				}
-				this.pFilter.updateMarkerData(pVec, this.detectImg, this.detectZSlice);
+				this.pFilter.updateMarkerData(
+						pVec, this.detectImg, this.detectZSlice, false);
 			}
 		}
 		// button press on a color chooser
@@ -1404,7 +1405,8 @@ public class CellCounter extends JFrame
 						this.detectImg, this.detectZSlice);
 			}
 			else {
-				this.pFilter.updateMarkerData(pVec, this.detectImg, this.detectZSlice);
+				this.pFilter.updateMarkerData(
+						pVec, this.detectImg, this.detectZSlice, false);
 			}
 			this.pFilter.setVisible(true);
 		}
@@ -2191,6 +2193,9 @@ public class CellCounter extends JFrame
 						CellCounter.this.currentMarkerVector);
 
 				if (CellCounter.this.pFilter != null) {
+					CellCounter.this.pFilter.updateMarkerData(
+						CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
+							CellCounter.this.detectZSlice, true);
 					CellCntrRegionFilterFrame.filterMarkerRegions(
 						CellCounter.this.currentMarkerVector, 
 							CellCounter.this.detectZSlice,
@@ -2198,9 +2203,6 @@ public class CellCounter extends JFrame
 									CellCounter.this.pFilter.getMaxSizeValue(),
 										CellCounter.this.pFilter.getMinIntensityValue(),
 											CellCounter.this.pFilter.getMaxIntensityValue());
-					CellCounter.this.pFilter.updateMarkerData(
-						CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
-							CellCounter.this.detectZSlice);
 				}
 				
 				// update GUI

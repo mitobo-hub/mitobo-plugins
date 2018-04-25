@@ -182,7 +182,8 @@ class CellCntrRegionFilterAdjustPanel extends JPanel implements Measurements,
 		this.plot.addKeyListener(this.ij);
 
 		// update internal status according to given data
-		this.updateData(this.adjuster.getCurrentMarkerType(), data, minVal, maxVal);
+		this.updateData(this.adjuster.getCurrentMarkerType(), data, minVal, maxVal,
+				true);
 		
 		// slider for minimal threshold
 		this.minSlider = new JScrollBar(Scrollbar.HORIZONTAL, 
@@ -242,15 +243,17 @@ class CellCntrRegionFilterAdjustPanel extends JPanel implements Measurements,
 
 	/**
 	 * Updates panel internal state and GUI by given data.
-	 * @param type		Type ID of markers.
-	 * @param data		New data.
-	 * @param minVal	Minimal value within data.
-	 * @param maxVal	Maximal value within data.
+	 * @param type						Type ID of markers.
+	 * @param data						New data.
+	 * @param minVal					Minimal value within data.
+	 * @param maxVal					Maximal value within data.
+	 * @param ignoreHistory 	If true, markers are treated as first seen. 
 	 */
-	public void updatePanelGUI(int type, int[] data, int minVal, int maxVal) {
+	public void updatePanelGUI(int type, int[] data, int minVal, int maxVal,
+			boolean ignoreHistory) {
 		// suppress event handling while doing the update
 		this.internalUpdateInProgress = true;
-		this.updateData(type,data,minVal,maxVal);
+		this.updateData(type, data, minVal, maxVal, ignoreHistory);
 		this.updateGUI();
 		this.internalUpdateInProgress = false;
 	}
@@ -261,26 +264,31 @@ class CellCntrRegionFilterAdjustPanel extends JPanel implements Measurements,
 	 * @param data			New data.
 	 * @param minVal		Minimal value in data.
 	 * @param maxVal		Maximal value in data.
+	 * @param ignoreHistory 	If true, markers are treated as first seen. 
 	 */
-	private void updateData(int type, int[] data, int minVal, int maxVal) {
+	private void updateData(int type, int[] data, int minVal, int maxVal,
+			boolean ignoreHistory) {
 		this.currentMarkerType = type;
 		this.minValue = minVal;
 		this.maxValue = maxVal;
 		this.dataRange = this.maxValue-this.minValue;		
+		this.currentSliderMinValue = this.minValue;
+		this.currentSliderMaxValue = this.maxValue;
+
 		// check if marker type has been seen before
-		if (this.markerTypeCurrentMinValues.get(new Integer(type)) != null) {
-			this.currentSliderMinValue = 
-				this.markerTypeCurrentMinValues.get(new Integer(type)).intValue();
+		if (!ignoreHistory) {
+			if (this.markerTypeCurrentMinValues.get(new Integer(type)) != null) {
+				this.currentSliderMinValue = 
+						this.markerTypeCurrentMinValues.get(new Integer(type)).intValue();
+			}
+			if (this.markerTypeCurrentMaxValues.get(new Integer(type)) != null) {
+				this.currentSliderMaxValue = 
+						this.markerTypeCurrentMaxValues.get(new Integer(type)).intValue();
+			}
 		}
-		else {
-			this.currentSliderMinValue = this.minValue;
-		}
-		if (this.markerTypeCurrentMaxValues.get(new Integer(type)) != null) {
-			this.currentSliderMaxValue = 
-				this.markerTypeCurrentMaxValues.get(new Integer(type)).intValue();
-		}
-		else {
-			this.currentSliderMaxValue = this.maxValue;
+		else { // reset history
+			this.markerTypeCurrentMinValues.put(new Integer(type), null);
+			this.markerTypeCurrentMaxValues.put(new Integer(type), null);
 		}
 		if (this.minSlider != null) {
 			this.minSlider.setMinimum(this.minValue);
