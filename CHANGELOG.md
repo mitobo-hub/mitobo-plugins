@@ -7,13 +7,19 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 
 ### Changed
-- MTBCellCounter update: new plugin mechanism for easy integration of additional detectors / functionality for adding marker regions (not just centroids) / support for simultaneous analysis of multiple channels
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+## [1.8.10] - 2018-05-18
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 1.8.10
+
+### Changed
+- updated to MiToBo release 1.8.10 including new biofilm image analysis operators
 
 ## [1.8.9] - 2018-05-04
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
