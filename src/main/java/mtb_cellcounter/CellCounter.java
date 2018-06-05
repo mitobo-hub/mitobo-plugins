@@ -76,6 +76,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -2266,7 +2270,8 @@ public class CellCounter extends JFrame
 	 * Panel to configure operators to be applied to image.
 	 */
 	protected class CellCounterDetectOperatorConfigPanel 
-		extends JPanel implements ActionListener, TableModelListener {
+		extends JPanel implements ActionListener, TableModelListener, 
+			KeyListener, MouseListener {
 
 		/**
 		 * List of available energies.
@@ -2313,6 +2318,11 @@ public class CellCounter extends JFrame
 		 */
 		Vector<Integer> detectorMarkerTypes = new Vector<Integer>();
 
+		/**
+		 * Flag to indicate if control key is pressed right now.
+		 */
+		private boolean windowsKeyPressed = false;
+		
 		/**
 		 * Default constructor.
 		 * @throws InstantiationException Thrown in case of failure.
@@ -2430,7 +2440,7 @@ public class CellCounter extends JFrame
 			tmpPanel = new JPanel();
 			tmpPanel.setLayout(fl);
 
-			// check which energy set to handle
+			// check which detectors to handle
 			this.availableClasses= 
 				ALDClassInfo.lookupExtendingClasses(CellCounterDetectOperator.class);
 
@@ -2448,7 +2458,7 @@ public class CellCounter extends JFrame
 					e.printStackTrace();
 				} 
 			}
-			// sort list of available energies lexicographically
+			// sort list of available detectors lexicographically
 			Collections.sort(detectorList);
 
 			this.detectorCollection = new JList<String>(detectorList);
@@ -2457,6 +2467,7 @@ public class CellCounter extends JFrame
 					ListSelectionModel.SINGLE_SELECTION);
 			this.detectorCollection.setEnabled(true);
 			this.detectorCollection.setPreferredSize(new Dimension(200,100));
+			this.detectorCollection.addMouseListener(this);
 			JScrollPane scrollPane = new JScrollPane();
 			scrollPane.setViewportView(this.detectorCollection);
 			scrollPane.setAutoscrolls(true);
@@ -2478,7 +2489,7 @@ public class CellCounter extends JFrame
 			tmpPanel.add(tmpLab);
 			this.add(tmpPanel);
 
-			// selected energies table
+			// selected detectors table
 			tmpPanel = new JPanel();
 			tmpPanel.setMaximumSize(new Dimension(200,200));
 			this.detectOpsTabModel= new CellCounterOpsTableModel(0, 2);
@@ -2492,6 +2503,8 @@ public class CellCounter extends JFrame
 			cr.setHorizontalAlignment(SwingConstants.CENTER);
 			this.detectOpsTab.getColumnModel().getColumn(1).setCellRenderer(cr);
 			this.detectOpsTab.setPreferredSize(new Dimension(200,100));
+			this.detectOpsTab.addMouseListener(this);
+			this.detectOpsTab.addKeyListener(this);
 			scrollPane= new JScrollPane();
 			scrollPane.setViewportView(this.detectOpsTab);
 			scrollPane.setAutoscrolls(true);
@@ -2513,6 +2526,40 @@ public class CellCounter extends JFrame
 			tmpPanel.add(this.configDetectorButton);
 			this.add(tmpPanel);
 		}
+		
+		private void addDetectorToCollection(String detector) {
+			if (   detector == null
+					|| detector.isEmpty()
+					|| this.selectedDetectors.contains(detector))
+				return;
+			// add new detector to selection
+			this.selectedDetectors.add(detector);
+			Object [] newRow = new Object[]{detector,"1"};
+			this.detectorMarkerTypes.add(new Integer(1));
+			this.detectOpsTabModel.addRow(newRow);		
+		}
+
+		private void removeDetectorFromCollection() {
+			// get selected row(s) from table
+			int[] selRows = this.detectOpsTab.getSelectedRows();
+			if (selRows.length != 0) {
+				for (int i=0; i<selRows.length; ++i) {
+					this.selectedDetectors.remove(i);
+					this.detectorMarkerTypes.remove(i);
+					this.detectOpsTabModel.removeRow(i);
+				}
+			}
+		}
+
+		private void configDetector() {
+			// get selected row from table
+			if (this.detectOpsTab.getSelectedRow() != -1) {
+				int entry = this.detectOpsTab.getSelectedRow();
+				String energy = (String)this.detectOpsTabModel.getValueAt(entry, 0);
+				// open the corresponding window
+				this.classNameMapping.get(energy).openConfigFrame();
+			}
+		}
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -2522,33 +2569,13 @@ public class CellCounter extends JFrame
 			if (cmd.equals("addDetector")) {
 				// get ID from GUI
 				String detector = this.detectorCollection.getSelectedValue();
-				if (   detector == null
-						|| detector.isEmpty()
-						|| this.selectedDetectors.contains(detector))
-					return;
-				// add new energy to selection
-				this.selectedDetectors.add(detector);
-				Object [] newRow = new Object[]{detector,"1"};
-				this.detectorMarkerTypes.add(new Integer(1));
-				this.detectOpsTabModel.addRow(newRow);
+				this.addDetectorToCollection(detector);
 			}
 			else if (cmd.equals("removeDetector")) {
-				// get selected row from table
-				if (this.detectOpsTab.getSelectedRow() != -1) {
-					int entry = this.detectOpsTab.getSelectedRow();
-					this.selectedDetectors.remove(entry);
-					this.detectorMarkerTypes.remove(entry);
-					this.detectOpsTabModel.removeRow(entry);
-				}
+				this.removeDetectorFromCollection();
 			}
 			else if (cmd.equals("configDetector")) {
-				// get selected row from table
-				if (this.detectOpsTab.getSelectedRow() != -1) {
-					int entry = this.detectOpsTab.getSelectedRow();
-					String energy = (String)this.detectOpsTabModel.getValueAt(entry, 0);
-					// open the corresponding window
-					this.classNameMapping.get(energy).openConfigFrame();
-				}
+				this.configDetector();
 			}
 		}		
 
@@ -2559,6 +2586,71 @@ public class CellCounter extends JFrame
 					|| e.getType() == TableModelEvent.DELETE
 					|| e.getType() == TableModelEvent.UPDATE) {
 				// nothing do to here...
+			}
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			// check for double-click and add selected item to detector collection
+			if (e.getClickCount() == 2) {
+				
+				// distinguish between different sources, i.e. table vs. panel
+				if (e.getSource().equals(this.detectOpsTab)) {
+					if (this.windowsKeyPressed) {
+						this.removeDetectorFromCollection();
+					}
+					else
+						this.configDetector();					
+				}
+				else if (e.getSource().equals(this.detectorCollection)) {
+					// get ID from GUI
+					String detector = this.detectorCollection.getSelectedValue();
+					this.addDetectorToCollection(detector);
+				}
+			}
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void keyTyped(KeyEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			if (e.getKeyCode() == KeyEvent.VK_WINDOWS) {
+				this.windowsKeyPressed = true;
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			if (e.getKeyCode() == KeyEvent.VK_WINDOWS) {
+				this.windowsKeyPressed = false;
 			}
 		}
 
@@ -2608,6 +2700,7 @@ public class CellCounter extends JFrame
 					CellCounterDetectOperatorConfigPanel.this.detectOpsTab.tableChanged(e);
 			}
 		}
+
 	}
 
 	/*
