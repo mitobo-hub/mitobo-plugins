@@ -2466,12 +2466,12 @@ public class CellCounter extends JFrame
 			this.detectorCollection.setSelectionMode(
 					ListSelectionModel.SINGLE_SELECTION);
 			this.detectorCollection.setEnabled(true);
-			this.detectorCollection.setPreferredSize(new Dimension(200,100));
+			this.detectorCollection.setMinimumSize(new Dimension(100,75));
 			this.detectorCollection.addMouseListener(this);
 			JScrollPane scrollPane = new JScrollPane();
 			scrollPane.setViewportView(this.detectorCollection);
 			scrollPane.setAutoscrolls(true);
-			scrollPane.setPreferredSize(new Dimension(200,100));
+			scrollPane.setMinimumSize(new Dimension(200,90));
 			this.add(scrollPane);
 
 			tmpPanel = new JPanel();
@@ -2491,25 +2491,30 @@ public class CellCounter extends JFrame
 
 			// selected detectors table
 			tmpPanel = new JPanel();
-			tmpPanel.setMaximumSize(new Dimension(200,200));
 			this.detectOpsTabModel= new CellCounterOpsTableModel(0, 2);
 			this.detectOpsTabModel.addTableModelListener(this);
 			this.detectOpsTabModel.setColumnIdentifiers(
 					new Object[]{"Detector","Type"});
 			this.detectOpsTab = new JTable(this.detectOpsTabModel);
-			this.detectOpsTab.getColumnModel().getColumn(0).setPreferredWidth(150);
-			this.detectOpsTab.getColumnModel().getColumn(1).setPreferredWidth(50);
+//			this.detectOpsTab.getColumnModel().getColumn(0).setMaxWidth(50);
+			this.detectOpsTab.getColumnModel().getColumn(0).setPreferredWidth(50);
+//			this.detectOpsTab.getColumnModel().getColumn(1).setMaxWidth(5);
+			this.detectOpsTab.getColumnModel().getColumn(1).setPreferredWidth(5);
 			DefaultTableCellRenderer cr = new DefaultTableCellRenderer();
 			cr.setHorizontalAlignment(SwingConstants.CENTER);
 			this.detectOpsTab.getColumnModel().getColumn(1).setCellRenderer(cr);
-			this.detectOpsTab.setPreferredSize(new Dimension(200,100));
+			this.detectOpsTab.setMinimumSize(new Dimension(160,70));
+//			this.detectOpsTab.setPreferredSize(new Dimension(170,70));
 			this.detectOpsTab.addMouseListener(this);
 			this.detectOpsTab.addKeyListener(this);
 			scrollPane= new JScrollPane();
 			scrollPane.setViewportView(this.detectOpsTab);
 			scrollPane.setAutoscrolls(true);
-			scrollPane.setPreferredSize(new Dimension(200,100));
+			scrollPane.setMinimumSize(new Dimension(180,70));
+			scrollPane.setPreferredSize(new Dimension(180,70));
 			tmpPanel.add(scrollPane);
+			tmpPanel.setMinimumSize(new Dimension(160,80));
+			tmpPanel.setPreferredSize(new Dimension(180,80));
 			this.add(tmpPanel);
 
 			// add remove and configure buttons
