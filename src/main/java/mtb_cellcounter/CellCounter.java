@@ -152,6 +152,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDWorkflowException;
 import de.unihalle.informatik.Alida.gui.ALDChooseOpNameFrame;
 import de.unihalle.informatik.Alida.helpers.ALDClassInfo;
+import de.unihalle.informatik.Alida.operator.ALDOperatorCollection;
 import de.unihalle.informatik.Alida.operator.events.ALDControlEvent;
 import de.unihalle.informatik.Alida.operator.events.ALDControlEvent.ALDControlEventType;
 import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
@@ -2273,6 +2274,9 @@ public class CellCounter extends JFrame
 		extends JPanel implements ActionListener, TableModelListener, 
 			KeyListener, MouseListener {
 
+		ALDOperatorCollection<CellCounterDetectOperator> opCollection = 
+				new ALDOperatorCollection<>();
+		
 		/**
 		 * List of available energies.
 		 */
@@ -2280,9 +2284,14 @@ public class CellCounter extends JFrame
 		private Collection<Class> availableClasses = null;
 
 		/**
+		 * Mapping of short names to detector IDs.
+		 */
+		private HashMap<String, String> shortNamesToIDs = null;
+
+		/**
 		 * Mapping of short names to detector objects.
 		 */
-		private HashMap<String, CellCounterDetectOperator> classNameMapping = null;
+//		private HashMap<String, CellCounterDetectOperator> classNameMapping = null;
 
 		/**
 		 * List of currently selected energies.
@@ -2441,17 +2450,20 @@ public class CellCounter extends JFrame
 			tmpPanel.setLayout(fl);
 
 			// check which detectors to handle
-			this.availableClasses= 
-				ALDClassInfo.lookupExtendingClasses(CellCounterDetectOperator.class);
+			this.availableClasses= this.opCollection.getAvailableClasses();
 
-			this.classNameMapping = new HashMap<String, CellCounterDetectOperator>();
+//			this.classNameMapping = 
+//					new HashMap<String, CellCounterDetectOperator>();
+			this.shortNamesToIDs = 
+					new HashMap<String, String>();
 			Vector<String> detectorList = new Vector<String>();
 			for (Class c : this.availableClasses) {
-				CellCounterDetectOperator dOp;
+//				CellCounterDetectOperator dOp;
 				try {
 					dOp = (CellCounterDetectOperator)c.newInstance();
 					String cname = dOp.getShortName();
-					this.classNameMapping.put(cname, dOp);
+//					this.classNameMapping.put(cname, dOp);
+					this.shortNamesToIDs.put(cname, dOp.getUniqueClassID());
 					detectorList.add(cname);
 				} catch (IllegalAccessException e) {
 					// TODO Auto-generated catch block
@@ -2556,13 +2568,16 @@ public class CellCounter extends JFrame
 			}
 		}
 
-		private void configDetector() {
+		private void configDetector() throws ALDOperatorException {
 			// get selected row from table
 			if (this.detectOpsTab.getSelectedRow() != -1) {
 				int entry = this.detectOpsTab.getSelectedRow();
-				String energy = (String)this.detectOpsTabModel.getValueAt(entry, 0);
+				String detectorShortName = 
+						(String)this.detectOpsTabModel.getValueAt(entry, 0);
 				// open the corresponding window
-				this.classNameMapping.get(energy).openConfigFrame();
+//				this.classNameMapping.get(energy).openConfigFrame();
+				this.opCollection.configureOperator(
+						this.shortNamesToIDs.get(detectorShortName));
 			}
 		}
 
@@ -2580,7 +2595,12 @@ public class CellCounter extends JFrame
 				this.removeDetectorFromCollection();
 			}
 			else if (cmd.equals("configDetector")) {
-				this.configDetector();
+				try {
+					this.configDetector();
+				} catch (ALDOperatorException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		}		
 
@@ -2603,9 +2623,13 @@ public class CellCounter extends JFrame
 				if (e.getSource().equals(this.detectOpsTab)) {
 					if (this.windowsKeyPressed) {
 						this.removeDetectorFromCollection();
-					}
-					else
-						this.configDetector();					
+					} else
+						try {
+							this.configDetector();
+						} catch (ALDOperatorException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}					
 				}
 				else if (e.getSource().equals(this.detectorCollection)) {
 					// get ID from GUI
