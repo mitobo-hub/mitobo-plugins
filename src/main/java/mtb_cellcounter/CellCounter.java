@@ -154,7 +154,10 @@ import de.unihalle.informatik.Alida.gui.ALDChooseOpNameFrame;
 import de.unihalle.informatik.Alida.helpers.ALDClassInfo;
 import de.unihalle.informatik.Alida.operator.ALDOperatorCollection;
 import de.unihalle.informatik.Alida.operator.events.ALDControlEvent;
+import de.unihalle.informatik.Alida.operator.events.ALDOperatorCollectionEvent;
+import de.unihalle.informatik.Alida.operator.events.ALDOperatorCollectionEventListener;
 import de.unihalle.informatik.Alida.operator.events.ALDControlEvent.ALDControlEventType;
+import de.unihalle.informatik.Alida.operator.events.ALDOperatorCollectionEvent.ALDOperatorCollectionEventType;
 import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
 import de.unihalle.informatik.Alida.workflows.ALDWorkflow;
 import de.unihalle.informatik.Alida.workflows.ALDWorkflowNodeID;
@@ -180,7 +183,8 @@ import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.xml.WriteXML;
  */
 public class CellCounter extends JFrame 
 	implements ActionListener, ItemListener, DocumentListener, 
-		StatusReporter, StatusListener, ALDSwingValueChangeListener {
+		StatusReporter, StatusListener, ALDSwingValueChangeListener,
+			ALDOperatorCollectionEventListener {
 	
 	/*
 	 * Global command definitions.
@@ -301,16 +305,15 @@ public class CellCounter extends JFrame
 
 	private GridLayout dynGrid;
 	
-	/**
-	 * List of active/selected detectors.
-	 */
-	Vector<CellCounterDetectOperator> detectorOps;
+	ALDOperatorCollection<CellCounterDetectOperator> opCollection;
+	
+	public HashMap<String, Integer> opTypeIDs;
 	
 	/**
-	 * Proxy object to run particle detector in thread mode.
+	 * Corresponding configuration and control window.
 	 */
-	private OperatorExecutionProxy opProxy;
-	
+	protected JDialog progressMessageWin;
+
 	private boolean isJava14;
 
 	/**
@@ -341,32 +344,16 @@ public class CellCounter extends JFrame
 		this.dynColorChooserVector = new Vector<ALDSwingComponent>();
 		
 		// configure detectors
-		this.detectorOps = new Vector<>();
-		this.opProxy = new OperatorExecutionProxy();
-//		try {
-//	    this.detectorConfigureButton = new JButton(CONFIGURE);
-//	    this.detectorConfigureButton.setActionCommand(CONFIGURE);
-//	    
-//	    // init the detector container
-//	    CellCounterDetectorOp detectorContainer;
-//	    try {
-//	    	// try to use a concrete sub-class implementation...
-//	    	detectorContainer = (CellCounterDetectorOp)Class.forName(
-//	    			"mtb_cellcounter.CellCounterDetectorOpAll").newInstance();
-//	    } catch (Exception e) {
-//	    	// ... if it cannot be found, fall-back to plastid-only detector
-//	    	detectorContainer = new CellCounterDetectorOpPlastidsParticlesUWT();
-//	    }
-//	    this.detectorOp = detectorContainer;
-//	    this.detectorOp.addStatusListener(this);
-//	    this.opProxy = new OperatorExecutionProxy(this.detectorOp);
-//	    this.opProxy.nodeParameterChanged();
-//	    // register detector operator as listener for config button
-//	    this.detectorConfigureButton.addActionListener(this.detectorOp);
-//    } catch (ALDOperatorException e) {
-//    	IJ.error("Cannot initialize particle detector, initial\n" 
-//     		+ "pre-segmentation will not be possible!");
-//    } 
+		try {
+			this.opCollection = 
+					new ALDOperatorCollection<>(CellCounterDetectOperator.class);
+			this.opTypeIDs = new HashMap<>();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// some additional initializations
+		this.initProgressWin();
 		initGUI();
 		populateTxtFields();
 		instance = this;
@@ -599,74 +586,6 @@ public class CellCounter extends JFrame
 		 * Which objects to detect?
 		 */
 		
-//		int typeCount = this.dynRadioVector.size();
-//		
-//		gbc = new GridBagConstraints();
-//		gbc.anchor = GridBagConstraints.NORTHWEST;
-//		gbc.fill = GridBagConstraints.BOTH;
-//		gbc.gridx=0;
-//		gbc.gridwidth = GridBagConstraints.REMAINDER;
-//		JLabel objectDetectLabel = new JLabel("Objects to detect:");
-//		gb.setConstraints(objectDetectLabel, gbc);
-//		this.statButtonPanel.add(objectDetectLabel);
-//
-//		gbc = new GridBagConstraints();
-//		gbc.anchor = GridBagConstraints.NORTHWEST;
-//		gbc.fill = GridBagConstraints.BOTH;
-//		gbc.gridx=0;
-//		gbc.gridwidth = GridBagConstraints.REMAINDER;
-//		plPanel = new JPanel();
-//		this.cbDetectPlastids = new JCheckBox(DETECTPLASTIDS);
-//		this.cbDetectPlastids.setToolTipText("Enable/disable plastid detection");
-//		this.cbDetectPlastids.setSelected(true);
-//		this.cbDetectPlastids.addItemListener(this);
-//		JLabel plLabel = new JLabel(", Type: ");
-//		this.spmTypePlastids = new SpinnerNumberModel(1, 1, typeCount, 1);
-//		this.spTypePlastids = new JSpinner(this.spmTypePlastids);
-//		gb.setConstraints(plPanel, gbc);
-//		plPanel.add(this.cbDetectPlastids);
-//		plPanel.add(plLabel);
-//		plPanel.add(this.spTypePlastids);
-//		this.statButtonPanel.add(plPanel);
-//
-//		gbc = new GridBagConstraints();
-//		gbc.anchor = GridBagConstraints.NORTHWEST;
-//		gbc.fill = GridBagConstraints.BOTH;
-//		gbc.gridx=0;
-//		gbc.gridwidth = GridBagConstraints.REMAINDER;
-//		plPanel = new JPanel();
-//		this.cbDetectStromuli = new JCheckBox(DETECTSTROMULI);
-//		this.cbDetectStromuli.setToolTipText("Enable/disable stromuli detection");
-//		this.cbDetectStromuli.setSelected(false);
-//		this.cbDetectStromuli.addItemListener(this);
-//		plLabel = new JLabel(", Type: ");
-//		this.spmTypeStromuli = new SpinnerNumberModel(2, 1, typeCount, 1);
-//		this.spTypeStromuli = new JSpinner(this.spmTypeStromuli);
-//		gb.setConstraints(plPanel, gbc);
-//		plPanel.add(this.cbDetectStromuli);
-//		plPanel.add(plLabel);
-//		plPanel.add(this.spTypeStromuli);
-//		this.statButtonPanel.add(plPanel);
-//
-//		gbc = new GridBagConstraints();
-//		gbc.anchor = GridBagConstraints.NORTHWEST;
-//		gbc.fill = GridBagConstraints.BOTH;
-//		gbc.gridx=0;
-//		gbc.gridwidth = GridBagConstraints.REMAINDER;
-//		plPanel = new JPanel();
-//		this.cbDetectStomata = new JCheckBox(DETECTSTOMATA);
-//		this.cbDetectStomata.setToolTipText("Enable/disable stomata detection");
-//		this.cbDetectStomata.setSelected(false);
-//		this.cbDetectStomata.addItemListener(this);
-//		plLabel = new JLabel(", Type: ");
-//		this.spmTypeStomata = new SpinnerNumberModel(3, 1, typeCount, 1);
-//		this.spTypeStomata = new JSpinner(this.spmTypeStomata);
-//		gb.setConstraints(plPanel, gbc);
-//		plPanel.add(this.cbDetectStomata);
-//		plPanel.add(plLabel);
-//		plPanel.add(this.spTypeStomata);
-//		this.statButtonPanel.add(plPanel);
-
 		try {
 			this.opConfPanel = new CellCounterDetectOperatorConfigPanel();
 			this.statButtonPanel.add(this.opConfPanel);
@@ -1264,11 +1183,11 @@ public class CellCounter extends JFrame
 		} else if (command.compareTo(RESET) == 0){
 			if (!this.detectMode)
 				reset();
-			this.opProxy.nodeParameterChanged();
+			this.opCollection.operatorConfigurationChanged();
 		} else if (command.compareTo(RESETCOUNTER) == 0){
 			if (!this.detectMode)
 				resetSelectedCounter();
-			this.opProxy.nodeParameterChanged();
+			this.opCollection.operatorConfigurationChanged();
 		} else if (command.compareTo(RESULTS) == 0){
 			report();
 		}else if (command.compareTo(EXPORTMARKERS) == 0){
@@ -1289,16 +1208,7 @@ public class CellCounter extends JFrame
 		}
 		// detect particles
 		else if (command.compareTo(DETECT) == 0) {
-//			ALDWorkflowNodeState state = this.opProxy.getOpState();
-//			if (state == null) {
-//				IJ.error("An error occurred during detection!");
-//				return;
-//			}
-//			if (state.equals(ALDWorkflowNodeState.READY)) {
-//				JOptionPane.showMessageDialog(CellCounter.this.getFocusOwner(), 
-//						"Particles already detected with current configuration!");
-//				return;
-//			}
+
 			if (this.ic == null){
 				IJ.error("You need to initialize first");
 				return;
@@ -1330,22 +1240,6 @@ public class CellCounter extends JFrame
 			}
 
 			// warning that some markers may get lost!
-//			if (this.typeVector.elementAt(plastidMarkerIndex).size() > 0) {
-//				String typeInfo = ((Integer)this.spmTypePlastids.getValue()).toString();
-//				int stomataMarkerIndex = 
-//					(((Integer)this.spTypeStomata.getModel().getValue()).intValue()-1);
-//				if (   this.cbDetectStomata.isEnabled() 
-//						&& this.cbDetectStomata.isSelected() 
-//						&& this.typeVector.elementAt(stomataMarkerIndex).size() > 0)
-//					typeInfo 
-//						+= ", " + ((Integer)this.spmTypeStomata.getValue()).toString();
-//				int stromuliMarkerIndex = 
-//						(((Integer)this.spTypeStromuli.getModel().getValue()).intValue()-1);
-//				if (   this.cbDetectStromuli.isEnabled() 
-//						&& this.cbDetectStromuli.isSelected() 
-//						&& this.typeVector.elementAt(stromuliMarkerIndex).size() > 0)
-//					typeInfo 
-//						+= ", " + ((Integer)this.spmTypeStromuli.getValue()).toString();
 			Vector<Integer> types = this.opConfPanel.getConfiguredTypes();
 			if (types == null || types.isEmpty())
 				return;
@@ -1384,8 +1278,33 @@ public class CellCounter extends JFrame
 				this.ic.repaint();	
 			populateTxtFields();
 			// run the workflow (automatically threaded)
-			this.opProxy.runWorkflow();
-			this.opProxy.processWorkflowEventQueue();
+			//this.opProxy.runWorkflow();
+			
+			// integer refers to marker type, string is unique class ID of detector
+			this.opTypeIDs.clear();
+			HashMap<Integer, String> detectors =
+					CellCounter.this.opConfPanel.getSelectedDetectors();
+
+			HashMap<Integer, CellCntrMarkerVector> mVecs = new HashMap<>();
+			for (CellCntrMarkerVector v : CellCounter.this.typeVector) {
+				Integer id = new Integer(v.getType());
+				mVecs.put(id, v);
+			}
+			LinkedList<String> configuredDetectors = new LinkedList<>();
+			for (Integer i: detectors.keySet()) {
+				String opID = this.opCollection.getUniqueID(detectors.get(i));
+				CellCounterDetectOperator op = this.opCollection.getOperator(opID);
+				this.opTypeIDs.put(opID, i);
+				// configure operator
+				op.setInputImage(CellCounter.this.detectImg);
+				op.setSliceZid(CellCounter.this.detectZSlice);
+				op.setMarkerVectors(mVecs);
+				op.addStatusListener(CellCounter.this);
+				configuredDetectors.add(opID);
+			}
+			this.opCollection.addOperatorCollectionEventListener(this);
+			this.opCollection.runOperators(configuredDetectors);
+			this.showProgressWin();
 		}
 		// filter particles
 		else if (command.compareTo(FILTER) == 0) {
@@ -1571,7 +1490,7 @@ public class CellCounter extends JFrame
 		this.detectMode = false;
 		this.selectButton.setEnabled(false);
 		// reset the workflow node
-		this.opProxy.nodeParameterChanged();
+		this.opCollection.operatorConfigurationChanged();
 		if (this.ic!=null) {
 			this.ic.setEditable(true);
 			this.ic.repaint();
@@ -1935,338 +1854,127 @@ public class CellCounter extends JFrame
 	}
 	
 	/**
-	 * Manager class for (threaded) execution of particle detector via workflow.
-	 * 
-	 * @author Birgit Moeller
+	 * Setup the window for informing the user about progress.
 	 */
-	protected class OperatorExecutionProxy implements	
-		ALDWorkflowEventListener {
-		
-		/**
-		 * Reference to the underlying Alida workflow object.
-		 */
-		protected ALDWorkflow alidaWorkflow;
-
-		/**
-		 * Listener object attached to the operator configuration object.
-		 */
-		protected ValueChangeListener valueChangeListener;
-
-		/**
-		 * Corresponding configuration and control window.
-		 */
-		protected JDialog progressMessageWin;
-
-		/**
-		 * Reference IDs of the operator nodes in the Alida workflow;
-		 */
-		public HashMap<ALDWorkflowNodeID, CellCounterDetectOperator> opNodeIDs;
-		
-		public HashMap<ALDWorkflowNodeID, Integer> opTypeIDs;
-
-		/**
-		 * Default constructor.
-		 * @param op	Operator object to be executed.
-		 */
-		public OperatorExecutionProxy() {
-			try {
-				this.alidaWorkflow = 
-						new ALDWorkflow(" ",ALDWorkflowContextType.OTHER);
-				this.alidaWorkflow.addALDWorkflowEventListener(this);
-			} catch (ALDOperatorException e) {
-				IJ.error("Workflow initialization failed! Exiting!");
-				System.exit(-1);
-			}
-			// init the operator and its workflow, i.e. add all operator nodes
-			this.opNodeIDs = new HashMap<>();
-			this.opTypeIDs = new HashMap<>();
-
-			// process workflow events
-			this.processWorkflowEventQueue();
-			
-			// some additional initializations
-			this.initProgressWin();
-		}
-		
-		/**
-		 * Notify workflow that operator object parameters changed.
-		 */
-		public void nodeParameterChanged() {
-			try {
-				for (ALDWorkflowNodeID nid : this.opNodeIDs.keySet())
-					this.alidaWorkflow.nodeParameterChanged(nid);
-      } catch (ALDWorkflowException e) {
-      	IJ.error("Workflow interaction failed!");
-      }
-		}
-		
-		/**
-		 * Request the state of the operator workflow node.
-		 * @return	State of the node.
-		 */
-//		public ALDWorkflowNodeState getOpState() {
-//      try {
-//      	return this.alidaWorkflow.getState(this.opNodeID);
-//      } catch (ALDWorkflowException e) {
-//      	IJ.error("Workflow interaction failed!");
-//	      return null;
-//      }
-//		}
-		
-		/**
-		 * Setup the window for informing the user about progress.
-		 */
-		protected void initProgressWin() {
-			String message = 
-					new String("The selected detectors are running, this \n" 
-										+ "may take some moments, please wait...");
-			final JOptionPane optionPane = new JOptionPane(message, 
-					JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, 
-					new Object[]{}, null);
-			this.progressMessageWin = new JDialog();
-			this.progressMessageWin.setTitle("Message: pre-segmentation phase");
-			this.progressMessageWin.setModal(true);
-			this.progressMessageWin.setContentPane(optionPane);
-			this.progressMessageWin.setDefaultCloseOperation(
-					WindowConstants.DO_NOTHING_ON_CLOSE);
-			this.progressMessageWin.pack();
-			this.progressMessageWin.setVisible(false);
-		}
-		
-		/**
-		 * Displays progress window in the center of the image.
-		 */
-		protected void showProgressWin() {
-			if (CellCounter.this.ic != null) {
-				Point p = CellCounter.this.ic.getLocationOnScreen();
-				Dimension d = CellCounter.this.ic.getSize();
-				int x = p.x + (int)(d.width/2.0) - 
-						(int)(this.progressMessageWin.getSize().width/2.0);
-				int y = p.y + (int)(d.height/2.0) - 
-						(int)(this.progressMessageWin.getSize().height/2.0);
-				this.progressMessageWin.setLocation(x, y);
-			}
-			this.progressMessageWin.setVisible(true);			
-		}
-
-		/**
-		 * Executes the workflow.
-		 */
-		protected void runWorkflow() {
-
-			for (ALDWorkflowNodeID nid: this.opNodeIDs.keySet())
-				try {
-					this.alidaWorkflow.removeNode(nid);
-				} catch (ALDWorkflowException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			this.opNodeIDs.clear();
-			this.opTypeIDs.clear();
-			HashMap<Integer, CellCounterDetectOperator> detectors =
-				CellCounter.this.opConfPanel.getSelectedDetectors();
-			for (Integer t: detectors.keySet()) {
-				CellCounterDetectOperator op = detectors.get(t);
-				try {
-					ALDWorkflowNodeID id = this.alidaWorkflow.createNode(op); 
-					this.opNodeIDs.put(id, op);
-					this.opTypeIDs.put(id, t);
-					this.valueChangeListener = new ValueChangeListener(id);
-					op.addStatusListener(CellCounter.this);
-					op.addValueChangeEventListener(this.valueChangeListener);
-				} catch (ALDWorkflowException ex) {
-					JOptionPane.showMessageDialog(null, "Instantiation of operator \""
-							+ op.getName() + "\" failed!\n", 
-							"Error", JOptionPane.ERROR_MESSAGE);
-				}
-			}
-
-			try {
-				HashMap<Integer, CellCntrMarkerVector> mVecs = new HashMap<>();
-				for (CellCntrMarkerVector v : CellCounter.this.typeVector) {
-					Integer id = v.getType();
-					mVecs.put(id, v);
-				}
-				// configure operators
-				CellCounter.this.detectorOps.clear();
-				for (ALDWorkflowNodeID nid : this.opNodeIDs.keySet()) {
-					CellCounterDetectOperator op = this.opNodeIDs.get(nid);
-					CellCounter.this.detectorOps.add(op);
-					op.setInputImage(CellCounter.this.detectImg);
-					op.setSliceZid(CellCounter.this.detectZSlice);
-					op.setMarkerVectors(mVecs);
-					// verify configuration once again
-					this.alidaWorkflow.nodeParameterChanged(nid);
-				}
-				// execute the node/workflow
-				this.alidaWorkflow.handleALDControlEvent(
-						new ALDControlEvent(this, ALDControlEventType.RUN_EVENT));
-				this.alidaWorkflow.runWorkflow();
-				this.showProgressWin();
-			} catch (ALDWorkflowException e) {
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(null, "Executing operator failed!\n",
-						"Error", JOptionPane.ERROR_MESSAGE);
-			} 
-			// post-process workflow events
-			this.processWorkflowEventQueue();
-		}
-		
-		/**
-		 * Processes all events that were recently added to the queue.
-		 * <p>
-		 * Note that this function needs to be called after all actions on the 
-		 * Alida workflow except calls to 'run' methods.
-		 */
-		protected synchronized void processWorkflowEventQueue() {
-			BlockingDeque<ALDWorkflowEvent> queue = 
-					this.alidaWorkflow.getEventQueue(this);
-			ALDWorkflowEvent event = null; 	
-			while (!queue.isEmpty()) {
-				event = queue.pop();
-				this.handleALDWorkflowEvent(event);
-			}
-		}
-		
-		/* (non-Javadoc)
-		 * @see de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEventListener#handleALDWorkflowEvent(de.unihalle.informatik.Alida.workflows.events.ALDWorkflowEvent)
-		 */
-		@Override
-		public synchronized void handleALDWorkflowEvent(ALDWorkflowEvent event) {
-
-			// extract event data
-			ALDWorkflowEventType type = event.getEventType();
-			
-			// handle the event
-			switch(type) 
-			{
-			// some events are simply ignored in this context...
-			case ADD_NODE:
-			case DELETE_NODE:
-			case EXECUTION_FINISHED:
-			case NODE_STATE_CHANGE:				
-			case RENAME:
-			case NODE_PARAMETER_CHANGE:
-			case USER_INTERRUPT:
-				break;
-			case RUN_FAILURE:
-				String msg = null;
-				if (event.getInfo() != null) {
-					ALDWorkflowRunFailureInfo wi = 
-							(ALDWorkflowRunFailureInfo)event.getInfo();
-					if (wi != null) {
-						try {
-							Exception e = wi.getException();
-							msg = e.getMessage();
-							if (msg == null) {
-								ByteArrayOutputStream os = new ByteArrayOutputStream();
-								PrintStream ps = new PrintStream(os);
-								e.printStackTrace(ps);
-								ps.close();
-								os.close();
-								msg = os.toString("UTF8");
-							}
-						} catch (Exception e1) {
-							// just ignore all exceptions, we won't loose anything
-						}
-					}
-				}
-				JOptionPane.showMessageDialog(null, "Detection failed!\n" + msg, 
-						"Error", JOptionPane.ERROR_MESSAGE);
-				this.progressMessageWin.setVisible(false);
-				break;
-			case SHOW_RESULTS:
-				this.progressMessageWin.setVisible(false);
-				ALDWorkflowNodeID nid = (ALDWorkflowNodeID)event.getInfo();
-				
-				Vector<CellCntrMarker> seg = 
-						this.opNodeIDs.get(nid).getDetectionResults();
-				int resultMarkerIndex = this.opTypeIDs.get(nid).intValue()-1;
-				CellCounter.this.currentMarkerVector =
-					CellCounter.this.typeVector.get(resultMarkerIndex);
-				for (CellCntrMarker m: seg)
-					CellCounter.this.currentMarkerVector.add(m);
-				try {
-					Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
-							Color.class, 
-							CellCounter.this.dynColorChooserVector.get(resultMarkerIndex));
-					CellCounter.this.currentMarkerVector.setColor(cc);
-				} catch (ALDDataIOException e) {
-					IJ.error("Setting color of current type failed!");
-				}
-				CellCounter.this.ic.setCurrentMarkerVector(
-						CellCounter.this.currentMarkerVector);
-
-				if (CellCounter.this.pFilter != null) {
-					CellCounter.this.pFilter.updateMarkerData(
-						CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
-							CellCounter.this.detectZSlice, true);
-					CellCntrRegionFilterFrame.filterMarkerRegions(
-						CellCounter.this.currentMarkerVector, 
-							CellCounter.this.detectZSlice,
-								CellCounter.this.pFilter.getMinSizeValue(),
-									CellCounter.this.pFilter.getMaxSizeValue(),
-										CellCounter.this.pFilter.getMinIntensityValue(),
-											CellCounter.this.pFilter.getMaxIntensityValue());
-				}
-				
-				// update GUI
-				CellCounter.this.dynRadioVector.elementAt(
-					CellCounter.this.currentMarkerVector.getType()-1).setSelected(true);
-				CellCounter.this.selectButton.setEnabled(true);
-				if (CellCounter.this.ic!=null)
-					CellCounter.this.ic.repaint();
-				populateTxtFields();
-				break;
-			default:
-				System.err.println("Event type \'" 
-						+ type + "\' not yet handled...");
-			}
-		}
-
-		/**
-		 * Listener class to react on parameter value changes in operator.
-		 * @author moeller
-		 */
-		class ValueChangeListener implements ALDSwingValueChangeListener {
-
-			/**
-			 * Corresponding node ID.
-			 */
-			private ALDWorkflowNodeID id;
-
-			/**
-			 * Default constructor.
-			 * @param nodeID	Alida workflow node ID of associated operator node.
-			 */
-			public ValueChangeListener(ALDWorkflowNodeID nodeID) {
-				this.id = nodeID;
-			}
-
-			/**
-			 * Updates the ID of the workflow node associated with this listener.
-			 * @param nodeID	New node ID.
-			 */
-			public void updateNodeID(ALDWorkflowNodeID nodeID) {
-				this.id = nodeID;
-			}
-
-			@Override
-      public void handleValueChangeEvent(ALDSwingValueChangeEvent event) {
-				try {
-					// notify workflow of change in node parameters
-					OperatorExecutionProxy.this.alidaWorkflow.nodeParameterChanged(
-							this.id);
-					// process event queue
-					OperatorExecutionProxy.this.processWorkflowEventQueue();
-				} catch (ALDWorkflowException ex) {
-					System.err.println("[ValueChangeListener] Warning! " 
-							+ "could not propagate parameter change event, node not found!");
-				}	  
-      }
-		}
+	protected void initProgressWin() {
+		String message = 
+				new String("The selected detectors are running, this \n" 
+									+ "may take some moments, please wait...");
+		final JOptionPane optionPane = new JOptionPane(message, 
+				JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, 
+				new Object[]{}, null);
+		this.progressMessageWin = new JDialog();
+		this.progressMessageWin.setTitle("Message: pre-segmentation phase");
+		this.progressMessageWin.setModal(true);
+		this.progressMessageWin.setContentPane(optionPane);
+		this.progressMessageWin.setDefaultCloseOperation(
+				WindowConstants.DO_NOTHING_ON_CLOSE);
+		this.progressMessageWin.pack();
+		this.progressMessageWin.setVisible(false);
 	}
 	
+	/**
+	 * Displays progress window in the center of the image.
+	 */
+	protected void showProgressWin() {
+		if (CellCounter.this.ic != null) {
+			Point p = CellCounter.this.ic.getLocationOnScreen();
+			Dimension d = CellCounter.this.ic.getSize();
+			int x = p.x + (int)(d.width/2.0) - 
+					(int)(this.progressMessageWin.getSize().width/2.0);
+			int y = p.y + (int)(d.height/2.0) - 
+					(int)(this.progressMessageWin.getSize().height/2.0);
+			this.progressMessageWin.setLocation(x, y);
+		}
+		this.progressMessageWin.setVisible(true);			
+	}
+
+	@Override
+	public synchronized void handleALDOperatorCollectionEvent(
+			ALDOperatorCollectionEvent event) {
+
+		// extract event data
+		ALDOperatorCollectionEventType type = event.getEventType();
+		
+		// handle the event
+		switch(type) 
+		{
+		case RUN_FAILURE:
+			String msg = null;
+			if (event.getInfo() != null) {
+				ALDWorkflowRunFailureInfo wi = 
+						(ALDWorkflowRunFailureInfo)event.getInfo();
+				if (wi != null) {
+					try {
+						Exception e = wi.getException();
+						msg = e.getMessage();
+						if (msg == null) {
+							ByteArrayOutputStream os = new ByteArrayOutputStream();
+							PrintStream ps = new PrintStream(os);
+							e.printStackTrace(ps);
+							ps.close();
+							os.close();
+							msg = os.toString("UTF8");
+						}
+					} catch (Exception e1) {
+						// just ignore all exceptions, we won't loose anything
+					}
+				}
+			}
+			JOptionPane.showMessageDialog(null, "Detection failed!\n" + msg, 
+					"Error", JOptionPane.ERROR_MESSAGE);
+			this.progressMessageWin.setVisible(false);
+			break;
+		case RESULTS_AVAILABLE:
+			this.progressMessageWin.setVisible(false);
+			ALDWorkflowNodeID nid = (ALDWorkflowNodeID)event.getInfo();
+			
+			CellCounterDetectOperator dop = 
+					(CellCounterDetectOperator)this.opCollection.getOperator(nid); 
+			Vector<CellCntrMarker> seg = dop.getDetectionResults();
+			int resultMarkerIndex = this.opTypeIDs.get(dop.getUniqueClassID()).intValue()-1;
+			CellCounter.this.currentMarkerVector =
+				CellCounter.this.typeVector.get(resultMarkerIndex);
+			for (CellCntrMarker m: seg)
+				CellCounter.this.currentMarkerVector.add(m);
+			try {
+				Color cc = (Color)ALDDataIOManagerSwing.getInstance().readData(null, 
+						Color.class, 
+						CellCounter.this.dynColorChooserVector.get(resultMarkerIndex));
+				CellCounter.this.currentMarkerVector.setColor(cc);
+			} catch (ALDDataIOException e) {
+				IJ.error("Setting color of current type failed!");
+			}
+			CellCounter.this.ic.setCurrentMarkerVector(
+					CellCounter.this.currentMarkerVector);
+
+			if (CellCounter.this.pFilter != null) {
+				CellCounter.this.pFilter.updateMarkerData(
+					CellCounter.this.currentMarkerVector, CellCounter.this.detectImg,
+						CellCounter.this.detectZSlice, true);
+				CellCntrRegionFilterFrame.filterMarkerRegions(
+					CellCounter.this.currentMarkerVector, 
+						CellCounter.this.detectZSlice,
+							CellCounter.this.pFilter.getMinSizeValue(),
+								CellCounter.this.pFilter.getMaxSizeValue(),
+									CellCounter.this.pFilter.getMinIntensityValue(),
+										CellCounter.this.pFilter.getMaxIntensityValue());
+			}
+			
+			// update GUI
+			CellCounter.this.dynRadioVector.elementAt(
+				CellCounter.this.currentMarkerVector.getType()-1).setSelected(true);
+			CellCounter.this.selectButton.setEnabled(true);
+			if (CellCounter.this.ic!=null)
+				CellCounter.this.ic.repaint();
+			populateTxtFields();
+			break;
+		default:
+			System.err.println("Event type \'" 
+					+ type + "\' not yet handled...");
+		}
+	}
+
 	/**
 	 * Panel to configure operators to be applied to image.
 	 */
@@ -2274,14 +1982,11 @@ public class CellCounter extends JFrame
 		extends JPanel implements ActionListener, TableModelListener, 
 			KeyListener, MouseListener {
 
-		ALDOperatorCollection<CellCounterDetectOperator> opCollection = 
-				new ALDOperatorCollection<>();
-		
 		/**
 		 * List of available energies.
 		 */
 		@SuppressWarnings("rawtypes")
-		private Collection<Class> availableClasses = null;
+		private Collection<String> availableClasses = null;
 
 		/**
 		 * Mapping of short names to detector IDs.
@@ -2384,19 +2089,19 @@ public class CellCounter extends JFrame
 		 * @return	Current collection.
 		 * @throws ALDDataIOException 
 		 */
-		public HashMap<Integer, CellCounterDetectOperator> getSelectedDetectors() {
+		public HashMap<Integer, String> getSelectedDetectors() {
 			// get number of entries in table
 			int rows = this.detectOpsTab.getRowCount();
 			if (rows == 0)
 				return null;
 
-			HashMap<Integer,CellCounterDetectOperator> ops = new HashMap<>();
+			HashMap<Integer, String> ops = new HashMap<>();
 			for (int r = 0; r < rows; ++r) {
 				String ename = 
 						(String)this.detectOpsTabModel.getValueAt(r, 0);
 				Integer type = 
 						Integer.valueOf((String)this.detectOpsTabModel.getValueAt(r, 1));
-				ops.put(type, this.classNameMapping.get(ename));
+				ops.put(type, ename);
 			}
 			return ops;
 		}
@@ -2450,25 +2155,16 @@ public class CellCounter extends JFrame
 			tmpPanel.setLayout(fl);
 
 			// check which detectors to handle
-			this.availableClasses= this.opCollection.getAvailableClasses();
+			this.availableClasses= CellCounter.this.opCollection.getUniqueClassIDs();
 
 //			this.classNameMapping = 
 //					new HashMap<String, CellCounterDetectOperator>();
-			this.shortNamesToIDs = 
-					new HashMap<String, String>();
+			this.shortNamesToIDs = new HashMap<String, String>();
 			Vector<String> detectorList = new Vector<String>();
-			for (Class c : this.availableClasses) {
-//				CellCounterDetectOperator dOp;
-				try {
-					dOp = (CellCounterDetectOperator)c.newInstance();
-					String cname = dOp.getShortName();
-//					this.classNameMapping.put(cname, dOp);
-					this.shortNamesToIDs.put(cname, dOp.getUniqueClassID());
-					detectorList.add(cname);
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} 
+			for (String id : this.availableClasses) {
+				String shortname = CellCounter.this.opCollection.getShortClassName(id);
+				this.shortNamesToIDs.put(shortname, id);
+				detectorList.add(shortname);
 			}
 			// sort list of available detectors lexicographically
 			Collections.sort(detectorList);
@@ -2576,7 +2272,7 @@ public class CellCounter extends JFrame
 						(String)this.detectOpsTabModel.getValueAt(entry, 0);
 				// open the corresponding window
 //				this.classNameMapping.get(energy).openConfigFrame();
-				this.opCollection.configureOperator(
+				CellCounter.this.opCollection.configureOperator(
 						this.shortNamesToIDs.get(detectorShortName));
 			}
 		}
