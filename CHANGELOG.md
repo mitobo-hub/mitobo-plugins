@@ -7,6 +7,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 
 ### Changed
+- MTBCellCounter update: handling of detection operators now being based on operator collection
 
 ### Deprecated
 
