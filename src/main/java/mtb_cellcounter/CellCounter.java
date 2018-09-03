@@ -2324,7 +2324,7 @@ public class CellCounter extends JFrame
 				String detectorShortName = 
 						(String)this.detectOpsTabModel.getValueAt(entry, 0);
 				// open the corresponding window
-				CellCounter.this.opCollection.configureOperator(
+				CellCounter.this.opCollection.openOperatorConfigWindow(
 						this.shortNamesToIDs.get(detectorShortName));
 			}
 		}
