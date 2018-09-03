@@ -7,7 +7,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 
 ### Changed
-- MTBCellCounter update: handling of detection operators now being based on operator collection
+- MTBCellCounter update: handling of detection operators now being based on operator collection, allowing to select and configure operators by double-click, fixed GUI elements on MacOS
 
 ### Deprecated
 
