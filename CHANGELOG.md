@@ -7,13 +7,19 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 
 ### Changed
-- MTBCellCounter update: handling of detection operators now being based on operator collection, allowing to select and configure operators by double-click, fixed GUI elements on MacOS
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+## [1.8.11] - 2018-09-07
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 1.8.11
+
+### Changed
+- MTBCellCounter update: handling of detection operators now being based on operator collection, allowing to select and configure operators by double-click, fixed GUI elements on MacOS
 
 ## [1.8.10] - 2018-05-18
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
