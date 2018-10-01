@@ -351,6 +351,7 @@ public class CellCounter extends JFrame
 		try {
 			this.opCollection = 
 					new MTBOperatorCollection<>(CellCounterDetectOperator.class);
+			this.opCollection.addALDOperatorCollectionEventListener(this);
 			this.opTypeIDs = new HashMap<>();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1311,7 +1312,7 @@ public class CellCounter extends JFrame
 			populateTxtFields();
 			
 			HashMap<Integer, CellCntrMarkerVector> mVecs = new HashMap<>();
-			for (CellCntrMarkerVector v : CellCounter.this.typeVector) {
+			for (CellCntrMarkerVector v : this.typeVector) {
 				Integer id = new Integer(v.getType());
 				mVecs.put(id, v);
 			}
@@ -1336,7 +1337,6 @@ public class CellCounter extends JFrame
 				configuredDetectors.add(opUID);
 			}
 			this.showProgressWin();
-			this.opCollection.addALDOperatorCollectionEventListener(this);
 			this.opCollection.runOperators(configuredDetectors);
 		}
 		// filter particles
@@ -1982,7 +1982,6 @@ public class CellCounter extends JFrame
 				"Detection failed!\n" + msg, "Error", JOptionPane.ERROR_MESSAGE);
 			break;
 		case RESULTS_AVAILABLE:
-			this.progressMessageWin.setVisible(false);
 			ALDWorkflowNodeID nid = (ALDWorkflowNodeID)event.getInfo();
 			
 			CellCounterDetectOperator dop = 
@@ -2024,6 +2023,7 @@ public class CellCounter extends JFrame
 			if (CellCounter.this.ic!=null)
 				CellCounter.this.ic.repaint();
 			populateTxtFields();
+			this.progressMessageWin.setVisible(false);
 			break;
 		default:
 //			System.err.println("Event type \'" + type + "\' not yet handled...");
