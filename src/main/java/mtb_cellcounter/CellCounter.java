@@ -1950,7 +1950,6 @@ public class CellCounter extends JFrame
 		switch(type) 
 		{
 		case RUN_FAILURE:
-			this.progressMessageWin.setVisible(false);
 			String msg = null;
 			if (event.getInfo() != null) {
 				if (event.getInfo() instanceof ALDWorkflowRunFailureInfo) {
@@ -1978,6 +1977,7 @@ public class CellCounter extends JFrame
 					msg = (String)event.getInfo();
 				}
 			}
+			this.progressMessageWin.setVisible(false);
 			JOptionPane.showMessageDialog(CellCounter.this.ic, 
 				"Detection failed!\n" + msg, "Error", JOptionPane.ERROR_MESSAGE);
 			break;
