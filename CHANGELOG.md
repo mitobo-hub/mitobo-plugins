@@ -14,6 +14,13 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [1.8.12] - 2018-10-17
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 1.8.12
+
+### Fixed
+- MTBCellCounter update: fixed bug in counting plastids and GUI freezings due to event interference
+
 ## [1.8.11] - 2018-09-07
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo-Plugins 1.8.11
