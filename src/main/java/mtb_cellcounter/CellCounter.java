@@ -352,6 +352,7 @@ public class CellCounter extends JFrame
 			this.opCollection = 
 					new MTBOperatorCollection<>(CellCounterDetectOperator.class);
 			this.opCollection.addALDOperatorCollectionEventListener(this);
+			this.opCollection.setRerunFlags(true);
 			this.opTypeIDs = new HashMap<>();
 		} catch (Exception e) {
 			e.printStackTrace();
