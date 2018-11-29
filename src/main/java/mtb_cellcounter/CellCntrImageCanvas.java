@@ -753,6 +753,18 @@ public class CellCntrImageCanvas extends ImageCanvas
 							nyM = ((q.getY()-this.srcRect.y)*this.magnification);
 							g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
 						}
+						
+						// for line segments draw start and end point
+						if (m.getShape() instanceof CellCntrMarkerShapeLine) {
+							CellCntrMarkerShapeLine cl = 
+									(CellCntrMarkerShapeLine)m.getShape();
+							g2.setColor(Color.red);	
+							g2.fillOval((int)(cl.getStartPoint().x - 2.5), 
+									(int)(cl.getStartPoint().y - 2.5), 5, 5);
+							g2.setColor(Color.blue);						
+							g2.fillOval((int)(cl.getEndPoint().x - 2.5),
+									(int)(cl.getEndPoint().y - 2.5), 5, 5);							
+						}
 					}
 				}
 			}
