@@ -96,6 +96,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeLine;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapePolygon;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
 
@@ -143,6 +144,22 @@ public class CellCntrImageCanvas extends ImageCanvas
 	 * Flag indicating if drag mode is active or not.
 	 */
 	private boolean dragMode = false;
+	/**
+	 * Flag indicating if line mode is active or not.
+	 */
+	private boolean lineMode = false;
+	/**
+	 * Flag to check if line mode key 'l' is pressed.
+	 */
+	private boolean lineModeKeyPressed = false;
+	/**
+	 * Start point of line.
+	 */
+	private Point2D.Double lineStart;
+	/**
+	 * Current mouse position in line mode.
+	 */
+	private Point2D.Double lineMousePos = new Point.Double();
 	/**
 	 * Flag indicating if region add mode is active or not.
 	 */
@@ -331,6 +348,15 @@ public class CellCntrImageCanvas extends ImageCanvas
 							targetVector.getVectorIndex(targetMarker));
 				}
 			}
+			// if 'L' key is pressed, marker type is line -> activate line mode
+			else if (this.lineModeKeyPressed) {
+				if (!this.lineMode && this.editsAllowed) {
+					this.lineMode = true;
+					// store current position as start point
+					this.lineStart = new Point2D.Double(x,y);
+					this.lineMousePos = new Point2D.Double(x,y);
+				}
+			}
 			// add mode
 			else {
 				CellCntrMarker m = 
@@ -354,7 +380,7 @@ public class CellCntrImageCanvas extends ImageCanvas
 	@Override
   public void mouseReleased(MouseEvent e) {
 		if (this.dragMode) {
-			
+
 			// check if a closed polygon was drawn, if not, just cancel
 			Point2D first = this.dragList.get(0);
 			Point2D last = this.dragList.get(this.dragList.size()-1);
@@ -433,6 +459,25 @@ public class CellCntrImageCanvas extends ImageCanvas
 			repaint();
 			this.cc.populateTxtFields();
 		}
+		else if (this.lineMode) {			
+			// current position is end of line
+			Point2D.Double lineEnd = new Point2D.Double(e.getX(), e.getY()); 
+			
+			CellCntrMarkerShapeLine l = 
+					new CellCntrMarkerShapeLine(this.lineStart, lineEnd);
+			
+			// line position is the middle of the segment
+			double x = (this.lineStart.x + lineEnd.x) / 2.0;
+			double y = (this.lineStart.y + lineEnd.y) / 2.0;
+			CellCntrMarker m = 
+				new CellCntrMarker((int)x, (int)y, this.img.getCurrentSlice(), l);
+			this.currentMarkerVector.addMarker(m);				
+
+			this.lineStart = null;
+			this.lineMode = false;
+			repaint();
+			this.cc.populateTxtFields();
+		}
 		else {
 			super.mouseReleased(e);
 		}
@@ -458,13 +503,21 @@ public class CellCntrImageCanvas extends ImageCanvas
 	
 	@Override
   public void mouseDragged(MouseEvent e) {
+		
+		int x = super.offScreenX(e.getX());
+		int y = super.offScreenY(e.getY());
+
 		// add current position to drag list
 		if (this.dragMode) {
-			int x = super.offScreenX(e.getX());
-			int y = super.offScreenY(e.getY());
 			this.dragList.add(new Point2D.Double(x,y));
 			repaint();
 		}
+		else if (this.lineMode) {
+			this.lineMousePos.x = x;
+			this.lineMousePos.y = y;
+			repaint();
+		}
+
 		else {
 			super.mouseDragged(e);
 		}
@@ -526,6 +579,9 @@ public class CellCntrImageCanvas extends ImageCanvas
 			e.setKeyChar('-');
 			IJ.getInstance().keyPressed(e);
 			break;
+		case KeyEvent.VK_L: // l for line mode
+			this.lineModeKeyPressed = true;
+			break;
 		case 81: // q = zoom in
 			e.setKeyCode(521);
 			e.setKeyChar('+');
@@ -575,6 +631,13 @@ public class CellCntrImageCanvas extends ImageCanvas
 
 	@Override
 	public void keyReleased(KeyEvent e) {
+		int keyCode = e.getKeyCode();
+		switch(keyCode)
+		{
+		case KeyEvent.VK_L: 
+			this.lineModeKeyPressed = false;
+			break;
+		}
 		IJ.getInstance().keyReleased(e);
 	}
 
@@ -588,8 +651,7 @@ public class CellCntrImageCanvas extends ImageCanvas
 		super.paint(g);
 		this.srcRect = getSrcRect();
 		Roi roi = this.img.getRoi();
-		double xM=0;
-		double yM=0;
+		double xM=0, yM=0, nxM=0, nyM=0;
 		
 		/*
         double magnification = super.getMagnification();
@@ -673,17 +735,29 @@ public class CellCntrImageCanvas extends ImageCanvas
 //						else {
 //							g2.setColor(defColor);
 //						}
-						for (int j=0; j<border.getPointNum(); ++j) {
-							Point2D.Double p = border.getPointAt(j);
+						for (int j=1; j<border.getPointNum(); ++j) {
+							Point2D.Double p = border.getPointAt(j-1);
 							xM = ((p.getX()-this.srcRect.x)*this.magnification);
 							yM = ((p.getY()-this.srcRect.y)*this.magnification);
-							g2.drawOval((int)xM, (int)yM,0,0);
+							Point2D.Double q = border.getPointAt(j);
+							nxM = ((q.getX()-this.srcRect.x)*this.magnification);
+							nyM = ((q.getY()-this.srcRect.y)*this.magnification);
+							g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
+						}
+						if (border.getPointNum() > 2) {
+							Point2D.Double p = border.getPointAt(border.getPointNum()-1);
+							xM = ((p.getX()-this.srcRect.x)*this.magnification);
+							yM = ((p.getY()-this.srcRect.y)*this.magnification);
+							Point2D.Double q = border.getPointAt(0);
+							nxM = ((q.getX()-this.srcRect.x)*this.magnification);
+							nyM = ((q.getY()-this.srcRect.y)*this.magnification);
+							g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
 						}
 					}
 				}
 			}
 		}
-		// draw selection rectangle
+		// draw selection region
 		if (this.dragList != null && this.dragList.size() > 0) {
 			g2.setColor(this.currentMarkerVector.getColor());
 			Point2D prev = this.dragList.firstElement();
@@ -702,10 +776,10 @@ public class CellCntrImageCanvas extends ImageCanvas
 		if (   this.cc.getCellBoundaryChannel() > 0 
 				&& this.cc.getCellBoundaryChannel() <= this.img.getImageStackSize()) {
 			ImageProcessor p = 
-				this.img.getStack().getProcessor(this.cc.getCellBoundaryChannel());
+					this.img.getStack().getProcessor(this.cc.getCellBoundaryChannel());
 			g2.setStroke(new BasicStroke(1f));
 			g2.setColor(Color.cyan);
-			for (int y=0;y<p.getHeight();++y)
+			for (int y=0;y<p.getHeight();++y) {
 				for (int x=0;x<p.getWidth();++x) {
 					if (p.getPixelValue(x, y) > 0) {
 						xM = ((x-this.srcRect.x)*this.magnification);
@@ -713,6 +787,17 @@ public class CellCntrImageCanvas extends ImageCanvas
 						g2.drawOval((int)xM, (int)yM, 0, 0);
 					}
 				}
+			}
+		}
+		
+		// in line mode we draw a line from line start to current mouse position
+		if (this.lineMode) {
+			double xP = ((this.lineStart.x - this.srcRect.x) * this.magnification);
+			double yP = ((this.lineStart.y - this.srcRect.y) * this.magnification);
+			double xN = ((this.lineMousePos.x - this.srcRect.x) * this.magnification);
+			double yN = ((this.lineMousePos.y - this.srcRect.y) * this.magnification);
+			g2.setColor(this.currentMarkerVector.getColor());			
+			g2.drawLine((int)xP, (int)yP, (int)xN, (int)yN);
 		}
 	}
 
