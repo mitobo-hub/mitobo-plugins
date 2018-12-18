@@ -461,7 +461,10 @@ public class CellCntrImageCanvas extends ImageCanvas
 		}
 		else if (this.lineMode) {			
 			// current position is end of line
-			Point2D.Double lineEnd = new Point2D.Double(e.getX(), e.getY()); 
+			int ex = super.offScreenX(e.getX());
+			int ey = super.offScreenY(e.getY());
+			
+			Point2D.Double lineEnd = new Point2D.Double(ex, ey); 
 			
 			CellCntrMarkerShapeLine l = 
 					new CellCntrMarkerShapeLine(this.lineStart, lineEnd);
@@ -758,12 +761,16 @@ public class CellCntrImageCanvas extends ImageCanvas
 						if (m.getShape() instanceof CellCntrMarkerShapeLine) {
 							CellCntrMarkerShapeLine cl = 
 									(CellCntrMarkerShapeLine)m.getShape();
+							Point2D.Double sp = cl.getStartPoint();
+							xM = (sp.x - this.srcRect.x)*this.magnification - 2.5;
+							yM = (sp.y - this.srcRect.y)*this.magnification - 2.5;
+							Point2D.Double ep = cl.getEndPoint();
+							nxM = (ep.x - this.srcRect.x)*this.magnification - 2.5;
+							nyM = (ep.y - this.srcRect.y)*this.magnification - 2.5;
 							g2.setColor(Color.red);	
-							g2.fillOval((int)(cl.getStartPoint().x - 2.5), 
-									(int)(cl.getStartPoint().y - 2.5), 5, 5);
+							g2.fillOval((int)xM, (int)yM, 5, 5);
 							g2.setColor(Color.blue);						
-							g2.fillOval((int)(cl.getEndPoint().x - 2.5),
-									(int)(cl.getEndPoint().y - 2.5), 5, 5);							
+							g2.fillOval((int)nxM, (int)nyM, 5, 5);							
 						}
 					}
 				}
