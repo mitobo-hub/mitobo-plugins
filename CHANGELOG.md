@@ -14,6 +14,16 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [1.8.13] - 2018-12-18
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 1.8.13
+
+### Added
+- MTBCellCounter: new marker type 'line segment'
+
+### Fixed
+- MTBCellCounter: operators can now be re-run with unchanged configuration without freezing the plugin
+
 ## [1.8.12] - 2018-10-17
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo-Plugins 1.8.12
