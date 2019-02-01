@@ -738,24 +738,32 @@ public class CellCntrImageCanvas extends ImageCanvas
 //						else {
 //							g2.setColor(defColor);
 //						}
-						for (int j=1; j<border.getPointNum(); ++j) {
-							Point2D.Double p = border.getPointAt(j-1);
-							xM = ((p.getX()-this.srcRect.x)*this.magnification);
-							yM = ((p.getY()-this.srcRect.y)*this.magnification);
-							Point2D.Double q = border.getPointAt(j);
-							nxM = ((q.getX()-this.srcRect.x)*this.magnification);
-							nyM = ((q.getY()-this.srcRect.y)*this.magnification);
-							g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
+						
+						for (int j=0; j<border.getPointNum(); ++j) {
+							Point2D.Double p = border.getPointAt(j);
+								xM = ((p.getX()-this.srcRect.x)*this.magnification);
+								yM = ((p.getY()-this.srcRect.y)*this.magnification);
+								g2.drawOval((int)xM, (int)yM, 0, 0);
 						}
-						if (border.getPointNum() > 2) {
-							Point2D.Double p = border.getPointAt(border.getPointNum()-1);
-							xM = ((p.getX()-this.srcRect.x)*this.magnification);
-							yM = ((p.getY()-this.srcRect.y)*this.magnification);
-							Point2D.Double q = border.getPointAt(0);
-							nxM = ((q.getX()-this.srcRect.x)*this.magnification);
-							nyM = ((q.getY()-this.srcRect.y)*this.magnification);
-							g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
-						}
+						
+//						for (int j=1; j<border.getPointNum(); ++j) {
+//							Point2D.Double p = border.getPointAt(j-1);
+//							xM = ((p.getX()-this.srcRect.x)*this.magnification);
+//							yM = ((p.getY()-this.srcRect.y)*this.magnification);
+//							Point2D.Double q = border.getPointAt(j);
+//							nxM = ((q.getX()-this.srcRect.x)*this.magnification);
+//							nyM = ((q.getY()-this.srcRect.y)*this.magnification);
+//							g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
+//						}
+//						if (border.getPointNum() > 2) {
+//							Point2D.Double p = border.getPointAt(border.getPointNum()-1);
+//							xM = ((p.getX()-this.srcRect.x)*this.magnification);
+//							yM = ((p.getY()-this.srcRect.y)*this.magnification);
+//							Point2D.Double q = border.getPointAt(0);
+//							nxM = ((q.getX()-this.srcRect.x)*this.magnification);
+//							nyM = ((q.getY()-this.srcRect.y)*this.magnification);
+//							g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
+//						}
 						
 						// for line segments draw start and end point
 						if (m.getShape() instanceof CellCntrMarkerShapeLine) {
