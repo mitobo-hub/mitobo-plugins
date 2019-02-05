@@ -883,10 +883,10 @@ public class CellCounter extends JFrame
 
 		// 'Options' menu on the left
 		JMenu optionsM = new JMenu("Options");
-		JMenu renderOptions = new JMenu("Rendering");
+		JMenu renderOptions = new JMenu("Contour Representation");
 		ButtonGroup renderGroup = new ButtonGroup();
 		JCheckBoxMenuItem renderLowMenuItem = 
-			new JCheckBoxMenuItem("Low quality, but fast.");
+			new JCheckBoxMenuItem("Points (faster)");
 		renderLowMenuItem.setActionCommand("render_low");
 		renderLowMenuItem.addActionListener(this);
 		renderLowMenuItem.setSelected(true);
@@ -894,7 +894,7 @@ public class CellCounter extends JFrame
 		renderGroup.add(renderLowMenuItem);
 		renderOptions.add(renderLowMenuItem);
 		JCheckBoxMenuItem renderHighMenuItem = 
-			new JCheckBoxMenuItem("High quality, but slower.");
+			new JCheckBoxMenuItem("Polygons");
 		renderHighMenuItem.setActionCommand("render_high");
 		renderHighMenuItem.addActionListener(this);
 		renderHighMenuItem.setMnemonic(KeyEvent.VK_H);
