@@ -105,6 +105,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -116,6 +117,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
@@ -287,6 +289,11 @@ public class CellCounter extends JFrame
 	 * Avoids editing markers during pre-segmentation phase.
 	 */
 	protected boolean detectMode=false;
+	
+	/**
+	 * Flag to enable or disable high quality rendering.
+	 */
+	protected boolean renderHighQuality = false;
 
 	/**
 	 * Reference to associated image window.
@@ -866,13 +873,35 @@ public class CellCounter extends JFrame
 	 * Adds a menu bar to the frame.
 	 */
 	private void addMenuBar() {
-		// 'File' menu on the left
 		JMenuBar mainWindowMenu = new JMenuBar();
+
+		// 'File' menu on the left
 		JMenu fileM = new JMenu("File");
 		JMenuItem quitItem = new JMenuItem(QUIT);
 		quitItem.addActionListener(this);
 		fileM.add(quitItem);
-		
+
+		// 'Options' menu on the left
+		JMenu optionsM = new JMenu("Options");
+		JMenu renderOptions = new JMenu("Rendering");
+		ButtonGroup renderGroup = new ButtonGroup();
+		JCheckBoxMenuItem renderLowMenuItem = 
+			new JCheckBoxMenuItem("Low quality, but fast.");
+		renderLowMenuItem.setActionCommand("render_low");
+		renderLowMenuItem.addActionListener(this);
+		renderLowMenuItem.setSelected(true);
+		renderLowMenuItem.setMnemonic(KeyEvent.VK_L);
+		renderGroup.add(renderLowMenuItem);
+		renderOptions.add(renderLowMenuItem);
+		JCheckBoxMenuItem renderHighMenuItem = 
+			new JCheckBoxMenuItem("High quality, but slower.");
+		renderHighMenuItem.setActionCommand("render_high");
+		renderHighMenuItem.addActionListener(this);
+		renderHighMenuItem.setMnemonic(KeyEvent.VK_H);
+		renderGroup.add(renderHighMenuItem);
+		renderOptions.add(renderHighMenuItem);
+		optionsM.add(renderOptions);
+
 		// 'Help' menu on the right
 		JMenu helpM = new JMenu("Help");
 		JMenuItem itemAbout = new JMenuItem(ABOUT);
@@ -881,6 +910,7 @@ public class CellCounter extends JFrame
 
 		// put it all together
 		mainWindowMenu.add(fileM);
+		mainWindowMenu.add(optionsM);
 		mainWindowMenu.add(Box.createHorizontalGlue());
 		mainWindowMenu.add(helpM);
 		this.setJMenuBar(mainWindowMenu);
@@ -1334,6 +1364,7 @@ public class CellCounter extends JFrame
 				op.setInputImage(CellCounter.this.detectImg);
 				op.setSliceZid(CellCounter.this.detectZSlice);
 				op.setMarkerVectors(mVecs);
+				op.setHighQualityData(this.renderHighQuality);
 				op.addStatusListener(CellCounter.this);
 				configuredDetectors.add(opUID);
 			}
@@ -1408,7 +1439,16 @@ public class CellCounter extends JFrame
 			} catch (ALDWorkflowException e) {
 				e.printStackTrace();
 			}
+		} 
+		// global configuration options
+		else if (command.equals("render_low")) {
+			this.renderHighQuality = false;
+			this.ic.setRenderQualityHigh(false);
 		}
+		else if (command.equals("render_high")) {
+			this.renderHighQuality = true;
+			this.ic.setRenderQualityHigh(true);
+		} 
 		
 		if (this.ic!=null)
 			this.ic.repaint();

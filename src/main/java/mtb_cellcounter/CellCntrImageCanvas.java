@@ -93,6 +93,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
@@ -164,6 +165,10 @@ public class CellCntrImageCanvas extends ImageCanvas
 	 * Flag indicating if region add mode is active or not.
 	 */
 	private boolean drawRegionMode = false;
+	/**
+	 * Flag to enable/disable high render quality.
+	 */
+	private boolean renderQualityHigh = false;
 
 	/**
 	 * Status bar to display current settings in image window.
@@ -739,32 +744,35 @@ public class CellCntrImageCanvas extends ImageCanvas
 //							g2.setColor(defColor);
 //						}
 						
-						for (int j=0; j<border.getPointNum(); ++j) {
-							Point2D.Double p = border.getPointAt(j);
+						if (this.renderQualityHigh && border instanceof MTBContour2D) {
+							for (int j=1; j<border.getPointNum(); ++j) {
+								Point2D.Double p = border.getPointAt(j-1);
+								xM = ((p.getX()-this.srcRect.x)*this.magnification);
+								yM = ((p.getY()-this.srcRect.y)*this.magnification);
+								Point2D.Double q = border.getPointAt(j);
+								nxM = ((q.getX()-this.srcRect.x)*this.magnification);
+								nyM = ((q.getY()-this.srcRect.y)*this.magnification);
+								g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
+							}
+							if (border.getPointNum() > 2) {
+								Point2D.Double p = border.getPointAt(border.getPointNum()-1);
+								xM = ((p.getX()-this.srcRect.x)*this.magnification);
+								yM = ((p.getY()-this.srcRect.y)*this.magnification);
+								Point2D.Double q = border.getPointAt(0);
+								nxM = ((q.getX()-this.srcRect.x)*this.magnification);
+								nyM = ((q.getY()-this.srcRect.y)*this.magnification);
+								g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
+							}
+						}
+						else {
+							for (int j=0; j<border.getPointNum(); ++j) {
+								Point2D.Double p = border.getPointAt(j);
 								xM = ((p.getX()-this.srcRect.x)*this.magnification);
 								yM = ((p.getY()-this.srcRect.y)*this.magnification);
 								g2.drawOval((int)xM, (int)yM, 0, 0);
+							}
 						}
-						
-//						for (int j=1; j<border.getPointNum(); ++j) {
-//							Point2D.Double p = border.getPointAt(j-1);
-//							xM = ((p.getX()-this.srcRect.x)*this.magnification);
-//							yM = ((p.getY()-this.srcRect.y)*this.magnification);
-//							Point2D.Double q = border.getPointAt(j);
-//							nxM = ((q.getX()-this.srcRect.x)*this.magnification);
-//							nyM = ((q.getY()-this.srcRect.y)*this.magnification);
-//							g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
-//						}
-//						if (border.getPointNum() > 2) {
-//							Point2D.Double p = border.getPointAt(border.getPointNum()-1);
-//							xM = ((p.getX()-this.srcRect.x)*this.magnification);
-//							yM = ((p.getY()-this.srcRect.y)*this.magnification);
-//							Point2D.Double q = border.getPointAt(0);
-//							nxM = ((q.getX()-this.srcRect.x)*this.magnification);
-//							nyM = ((q.getY()-this.srcRect.y)*this.magnification);
-//							g2.drawLine((int)xM, (int)yM, (int)nxM, (int)nyM);
-//						}
-						
+							
 						// for line segments draw start and end point
 						if (m.getShape() instanceof CellCntrMarkerShapeLine) {
 							CellCntrMarkerShapeLine cl = 
@@ -974,6 +982,14 @@ public class CellCntrImageCanvas extends ImageCanvas
 	  */
 	 public void setEditable(boolean _flag) {
 		 this.editsAllowed = _flag;
+	 }
+	 
+	 /**
+	  * If true, high quality rendering of contours etc. is enabled.
+	  * @param flag		If true, apply high quality rendering.
+	  */
+	 public void setRenderQualityHigh(boolean flag) {
+		 this.renderQualityHigh = flag;
 	 }
 
 	 /**
