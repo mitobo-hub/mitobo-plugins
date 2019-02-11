@@ -14,6 +14,13 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [1.8.14] - 2019-02-11
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 1.8.14
+
+### Added
+- MTBCellCounter: advanced options for visualization, stromules detection operator (BIOIMAGING '19)
+
 ## [1.8.13.1] - 2019-01-22
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo-Plugins 1.8.13.1
