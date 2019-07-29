@@ -14,6 +14,13 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [1.8.15] - 2019-07-29
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 1.8.15
+
+### Changed
+- updated mailing list address in POM file to point directly to MiToBo tag in forum.image.sc
+
 ## [1.8.14] - 2019-02-11
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo-Plugins 1.8.14
