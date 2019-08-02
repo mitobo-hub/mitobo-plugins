@@ -86,12 +86,16 @@ import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
 import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Vector;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 
+import de.jstacs.utils.Pair;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2D;
@@ -686,6 +690,12 @@ public class CellCntrImageCanvas extends ImageCanvas
 		g2.setStroke(new BasicStroke(1f));
 		g2.setFont(this.font);
 
+		// ensure that no numbers are overlapping: remember positions and shift
+		// if more than one marker refers to a single position
+		HashMap<Integer,Vector<Integer>> numberPos = new HashMap<>();
+		Integer xInt, yInt;
+		int mCount = 0;
+		
 		int i=0;
 		ListIterator<CellCntrMarkerVector> it = this.typeVector.listIterator();
 		while(it.hasNext()){
@@ -731,8 +741,23 @@ public class CellCntrImageCanvas extends ImageCanvas
 							g2.drawOval((int)xM-2, (int)yM-2,4,4);
 					}
 					// draw numbers
-					if (this.showNumbers)
-						g2.drawString(Integer.toString(typeID), (int)xM+3, (int)yM-3);
+					int xof = 3;
+					if (this.showNumbers) {
+						xInt = new Integer((int)xM);
+						yInt = new Integer((int)yM);
+						if (!numberPos.containsKey(xInt)) {
+							numberPos.put(xInt, new Vector<Integer>());
+							numberPos.get(xInt).add(yInt);
+						}
+						else {
+							numberPos.get(xInt).add(yInt);
+							// check how many markers are located at this position
+							mCount = Collections.frequency(numberPos.get(xInt), yInt);
+							// slightly shift position
+							xof = 3 + 6 * (mCount-1);
+						}
+						g2.drawString(Integer.toString(typeID),	(int)xM + xof, (int)yM - 3);
+					}
 				
 					// draw contour, if requested
 					if (this.showBorders && m.getShape() != null) {

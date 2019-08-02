@@ -7,6 +7,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 
 ### Changed
+- MTBCellCounter: improved drawing of marker numbers to avoid overlapping for better readability
 
 ### Deprecated
 
