@@ -7,13 +7,19 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 
 ### Changed
-- MTBCellCounter: improved drawing of marker numbers to avoid overlapping for better readability
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+## [1.8.16] - 2019-12-19
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 1.8.16
+
+### Changed
+- MTBCellCounter: improved drawing of marker numbers to avoid overlapping for better readability
 
 ## [1.8.15] - 2019-07-29
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
