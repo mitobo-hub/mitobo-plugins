@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package mtb_segmentation;
 
 import ij.IJ;

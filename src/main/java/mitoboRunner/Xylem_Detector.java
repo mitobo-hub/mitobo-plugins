@@ -20,15 +20,6 @@
  *
  *    http://www.informatik.uni-halle.de/mitobo/
  *
- */
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
 
 package mitoboRunner;
 

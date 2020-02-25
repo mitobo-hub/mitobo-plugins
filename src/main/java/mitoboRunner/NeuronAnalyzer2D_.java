@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package mitoboRunner;
 
 import ij.IJ;
