@@ -116,7 +116,7 @@
         </executions>
       </plugin>
 
-      <!-- copy dependencies incl. help jar to local folder -->
+      <!-- copy dependencies to local folder -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>

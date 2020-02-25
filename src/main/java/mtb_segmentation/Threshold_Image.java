@@ -44,8 +44,6 @@ import java.awt.AWTEvent;
 import java.awt.Choice;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThresh;
@@ -61,7 +59,6 @@ import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThresh;
  * @author gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class Threshold_Image implements PlugInFilter, DialogListener {
 
 

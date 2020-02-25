@@ -96,8 +96,6 @@ import loci.formats.ImageWriter;
 import loci.formats.gui.ExtensionFileFilter;
 import loci.formats.gui.GUITools;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.helpers.ALDEnvironmentConfig;
@@ -111,7 +109,6 @@ import de.unihalle.informatik.MiToBo.io.tools.ImageIOUtils;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class Save_Image_MTB implements PlugInFilter, PropertyChangeListener, StatusListener {
 
 	// input image

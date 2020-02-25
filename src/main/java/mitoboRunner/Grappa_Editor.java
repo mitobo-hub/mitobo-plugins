@@ -4,11 +4,8 @@ import java.util.Collection;
 
 import ij.IJ;
 import ij.plugin.*;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.indexing.SezPozAdapter;
-import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
 import de.unihalle.informatik.Alida.helpers.ALDClassInfo;
 import de.unihalle.informatik.Alida.operator.ALDOperatorLocation;
 import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
@@ -20,16 +17,12 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBVersionProviderReleaseFile
  * 
  * @author moeller
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class Grappa_Editor implements PlugIn {
 
 	@Override
   public void run(String arg0) {
 		// init the SezPoz adapter properly
 		SezPozAdapter.initAdapter(IJ.getClassLoader());
-
-		// configure online help to use MiToBo help set
-		OnlineHelpDisplayer.initHelpset("mitobo");
 
 		// configure version management
 		ALDVersionProviderFactory.setProviderClass("de.unihalle.informatik." 

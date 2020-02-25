@@ -34,10 +34,7 @@ package mitoboRunner;
 
 import ij.IJ;
 import ij.plugin.*;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.indexing.SezPozAdapter;
-import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
 import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
 import de.unihalle.informatik.MiToBo.core.gui.MTBChooseOpNameFrame;
 import de.unihalle.informatik.MiToBo.core.operator.MTBVersionProviderReleaseFile;
@@ -56,9 +53,6 @@ public class MiToBo_Runner implements PlugIn {
 		// init the SezPoz adapter properly
 		SezPozAdapter.initAdapter(IJ.getClassLoader());
 		
-		// configure online help to use MiToBo help set
-		OnlineHelpDisplayer.initHelpset("mitobo");
-
 		// configure version management
 		ALDVersionProviderFactory.setProviderClass("de.unihalle.informatik." 
 				+	"MiToBo.core.operator.MTBVersionProviderReleaseFile");

@@ -37,7 +37,6 @@ import ij.IJ;
 import ij.plugin.*;
 import de.unihalle.informatik.Alida.annotations.indexing.SezPozAdapter;
 import de.unihalle.informatik.Alida.gui.ALDOperatorGUIExecutionProxy;
-import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
 import de.unihalle.informatik.Alida.operator.ALDOperatorLocation;
 import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
 import de.unihalle.informatik.MiToBo.apps.neurons2D.NeuronAnalyzer2D;
@@ -58,9 +57,6 @@ public class NeuronAnalyzer2D_ implements PlugIn {
 	public void run(String arg0) {
 		// initialize the SezPoz adapter properly
 		SezPozAdapter.initAdapter(IJ.getClassLoader());
-
-		// configure online help to use MiToBo help set
-		OnlineHelpDisplayer.initHelpset("mitobo");
 
 		// configure version management
 		ALDVersionProviderFactory.setProviderClass("de.unihalle.informatik." 

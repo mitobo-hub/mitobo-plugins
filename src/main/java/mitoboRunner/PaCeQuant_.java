@@ -27,7 +27,6 @@ package mitoboRunner;
 import ij.IJ;
 import ij.plugin.*;
 import de.unihalle.informatik.Alida.annotations.indexing.SezPozAdapter;
-import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
 import de.unihalle.informatik.Alida.operator.ALDOperatorLocation;
 import de.unihalle.informatik.MiToBo.core.gui.MTBOperatorGUIExecutionProxy;
 
@@ -42,9 +41,6 @@ public class PaCeQuant_ implements PlugIn {
 	public void run(String arg0) {
 		// init the SezPoz adapter properly
 		SezPozAdapter.initAdapter(IJ.getClassLoader());
-
-		// configure online help to use MiToBo help set
-		OnlineHelpDisplayer.initHelpset("mitobo");
 
 		// open the control frame
 		final String className = 

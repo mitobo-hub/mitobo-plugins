@@ -94,8 +94,6 @@ import loci.common.services.ServiceException;
 import loci.formats.FormatException;
 import loci.formats.ImageReader;
 import loci.formats.gui.GUITools;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.helpers.ALDEnvironmentConfig;
@@ -108,7 +106,6 @@ import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class Open_Image_MTB implements PlugIn, StatusListener, PropertyChangeListener {
 
 	private String currentfile = "";
