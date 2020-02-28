@@ -20,6 +20,7 @@
  *
  *    http://www.informatik.uni-halle.de/mitobo/
  *
+ */
 
 package mitoboRunner;
 
