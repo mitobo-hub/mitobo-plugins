@@ -87,6 +87,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Collection;
@@ -1991,39 +1993,30 @@ public class CellCounter extends JFrame
 		switch(type) 
 		{
 		case RUN_FAILURE:
-			String msg = null;
+		{
+			String msg = event.getEventMessage();
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
 			if (event.getInfo() != null) {
-				if (event.getInfo() instanceof ALDWorkflowRunFailureInfo) {
-					ALDWorkflowRunFailureInfo wi = 
-							(ALDWorkflowRunFailureInfo)event.getInfo();
-					if (wi != null) {
-						try {
-							Exception e = wi.getException();
-							msg = e.getMessage();
-							if (msg == null) {
-								ByteArrayOutputStream os = new ByteArrayOutputStream();
-								PrintStream ps = new PrintStream(os);
-								e.printStackTrace(ps);
-								ps.close();
-								os.close();
-								msg = os.toString("UTF8");
-							}
-						} catch (Exception e1) {
-							// just ignore all exceptions, we won't loose anything
-						}
-					}
-				}
-				else {
-					// just a string...
-					msg = (String)event.getInfo();
+				// print stack trace
+				if (event.getInfo().getException() != null) {
+					event.getInfo().getException().printStackTrace(pw);
 				}
 			}
 			this.progressMessageWin.setVisible(false);
 			JOptionPane.showMessageDialog(CellCounter.this.ic, 
-				"Detection failed!\n" + msg, "Error", JOptionPane.ERROR_MESSAGE);
+				"Detection failed!\n" + msg + "\n" + sw.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+			pw.close();
+			try {
+				sw.close();
+			} catch (IOException e) {
+				// just ignore...
+			}
 			break;
+		}
 		case RESULTS_AVAILABLE:
-			ALDWorkflowNodeID nid = (ALDWorkflowNodeID)event.getInfo();
+		{
+			ALDWorkflowNodeID nid = event.getInfo().getWorkflowNodeID();
 			
 			CellCounterDetectOperator dop = 
 					(CellCounterDetectOperator)this.opCollection.getOperator(nid); 
@@ -2066,9 +2059,12 @@ public class CellCounter extends JFrame
 			populateTxtFields();
 			this.progressMessageWin.setVisible(false);
 			break;
+		}
 		default:
+		{
 //			System.err.println("Event type \'" + type + "\' not yet handled...");
 			break;
+		}
 		}
 	}
 
