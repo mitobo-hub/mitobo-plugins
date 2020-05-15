@@ -14,7 +14,14 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
-## [1.8.17] - 2020-03-27
+## [2.0] - 2020-05-15
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 2.0
+
+### Changed
+- Online Help: switched to new concept based on operator annotations
+
+## [1.8.18] - 2020-03-27
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo-Plugins 1.8.18
 
