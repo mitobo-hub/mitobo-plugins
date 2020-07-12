@@ -769,7 +769,8 @@ public class CellCntrImageCanvas extends ImageCanvas
 //							g2.setColor(defColor);
 //						}
 						
-						if (this.renderQualityHigh && border instanceof MTBContour2D) {
+						if (  (this.renderQualityHigh && border instanceof MTBContour2D)
+								|| border.getPointNum() == 2) {
 							for (int j=1; j<border.getPointNum(); ++j) {
 								Point2D.Double p = border.getPointAt(j-1);
 								xM = ((p.getX()-this.srcRect.x)*this.magnification);
