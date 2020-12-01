@@ -14,6 +14,13 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [2.1] - 2020-12-01
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 2.1
+
+### Fixed
+- MTBCellCounter: fixed issues on drawing borders with only two points
+
 ## [2.0] - 2020-05-15
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo-Plugins 2.0
