@@ -44,7 +44,7 @@ public class PaCeQuant_ implements PlugIn {
 
 		// open the control frame
 		final String className = 
-				"de.unihalle.informatik.MiToBo.apps.cellMorphology.PaCeQuant";
+				"de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant.PaCeQuant";
 		ALDOperatorLocation opLoc = 
 				ALDOperatorLocation.createClassLocation(className);
 		MTBOperatorGUIExecutionProxy execManager =
