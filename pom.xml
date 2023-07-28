@@ -132,7 +132,7 @@
 		<artifactItem>
 		  <groupId>de.unihalle.informatik.MiToBo.native</groupId>
 		  <artifactId>mitobo-native-${native.libdir}</artifactId>
-		  <version>1.2</version>
+		  <version>1.2.1</version>
 		  <type>jar</type>
 		  <overWrite>true</overWrite>
 		  <outputDirectory>target/natives/${native.libdir}</outputDirectory>
@@ -244,8 +244,8 @@
             <!-- automatically creates the classpath using all project dependencies,
                  also adding the project build directory -->
             <classpath/>
-	    <argument>-Xms2048m</argument>
-	    <argument>-Xmx2048m</argument>
+	    <argument>-Xms8192m</argument>
+	    <argument>-Xmx8192m</argument>
 	    <argument>-Djava.library.path=target/natives/${native.libdir}</argument>
 	    <argument>-Dalida.versionprovider_class=de.unihalle.informatik.MiToBo.core.operator.MTBVersionProviderReleaseFile</argument>
 	    <argument>-Dalida.oprunner.level=standard</argument>
