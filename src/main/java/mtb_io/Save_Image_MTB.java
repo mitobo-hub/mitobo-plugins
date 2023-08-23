@@ -65,6 +65,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package mtb_io;
 
+import java.awt.Component;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -78,6 +81,8 @@ import ij.process.ImageProcessor;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
 import loci.common.StatusEvent;
@@ -100,11 +105,15 @@ import de.unihalle.informatik.MiToBo.io.tools.ImageIOUtils;
  * @author Oliver Gress
  *
  */
-public class Save_Image_MTB implements PlugInFilter, PropertyChangeListener, StatusListener {
+public class Save_Image_MTB implements PlugInFilter, PropertyChangeListener, StatusListener, FocusListener {
 
 	// input image
 	protected MTBImage img = null;
 	protected ImagePlus imp = null;
+	
+	// file chooser dialog and file chooser text field
+	protected JFileChooser fc = null;
+	protected JTextField fctf = null;
 	
 	/** a panel for image writer options (set as accessory of a JFileChooser) */
 	protected ImageWriterOptionsPane iwop;
@@ -130,7 +139,7 @@ public class Save_Image_MTB implements PlugInFilter, PropertyChangeListener, Sta
 	@Override
 	public void run(ImageProcessor arg0) {
 		
-		JFileChooser fc = this.createFileChooser();
+		this.fc = this.createFileChooser();
 		
 		// set image title (without extension) as default file name
 		String origtitle = null;
@@ -142,13 +151,13 @@ public class Save_Image_MTB implements PlugInFilter, PropertyChangeListener, Sta
 			int dotID = origtitle.indexOf(".");
 			if (dotID != -1) {
 				String name = origtitle.substring(0,dotID);
-				fc.setSelectedFile(new File(name + ".ome.tiff"));
+				this.fc.setSelectedFile(new File(name + ".ome.tiff"));
 			}
 		}
 		
-		while (fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+		while (this.fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 			
-			File outfile = fc.getSelectedFile();
+			File outfile = this.fc.getSelectedFile();
 			
 			if (outfile == null) {
 				IJ.error("File save dialog returned 'null'");
@@ -157,7 +166,7 @@ public class Save_Image_MTB implements PlugInFilter, PropertyChangeListener, Sta
 			
 			// if a specific format file filter was chosen, but the selected filename does not
 			// match the formats extension, add the extension
-			FileFilter ff = fc.getFileFilter();
+			FileFilter ff = this.fc.getFileFilter();
 			if (ff instanceof ExtensionFileFilter) {
 				ExtensionFileFilter eff = (ExtensionFileFilter)ff;
 				
@@ -270,6 +279,7 @@ public class Save_Image_MTB implements PlugInFilter, PropertyChangeListener, Sta
 		/**
 		 * Create a file chooser configured for image writing, adding a panel for
 		 * image writer options
+		 * @return JFileChooser object.
 		 */
 	public JFileChooser createFileChooser() {
 		
@@ -331,7 +341,7 @@ public class Save_Image_MTB implements PlugInFilter, PropertyChangeListener, Sta
 		
 		// listen to changed property of the writer options panel
 		this.iwop.addPropertyChangeListener(this);
-		
+	
 
 		// set default/initial file filter to OME-TIFF if possible
 		if (ffs != null) {
@@ -344,7 +354,30 @@ public class Save_Image_MTB implements PlugInFilter, PropertyChangeListener, Sta
 			}
 		}
 		
+		// register as focus listener to text field of file chooser,
+		// if text field looses focus, text may have changed...
+		this.getChooserTextField(jfc.getComponents());
+		this.fctf.addFocusListener(this);
+		
 		return jfc;
+	}
+
+	/**
+	 * Finds the text field component in the JFileChooser's component hierarchy.
+	 * The first text field which is found is assumend to be the target field.
+	 * 
+	 * @param comp	List of components to search in a recursive fashion.
+	 */
+	private void getChooserTextField(Component[] comp) {
+		for(int x = 0; x < comp.length; x++) {
+			if(comp[x] instanceof JPanel) 
+				// JPanels can have sub-components...
+				this.getChooserTextField(((JPanel)comp[x]).getComponents());
+			else if(comp[x] instanceof JTextField) {
+				this.fctf = (JTextField)comp[x];
+				return;
+			}
+		}
 	}
 
 	/**
@@ -368,7 +401,19 @@ public class Save_Image_MTB implements PlugInFilter, PropertyChangeListener, Sta
 		IJ.showStatus(evt.getStatusMessage());
 		IJ.showProgress(evt.getProgressValue(), evt.getProgressMaximum());
 	}
-	
-	
+
+	@Override
+	public void focusGained(FocusEvent evt) {
+		// do nothing here
+	}
+
+	@Override
+	public void focusLost(FocusEvent evt) {
+		// notify the ImageWriterOptionsPane of the change in the file name by manual editing
+		// (note: using the event handler mechanisms did not work, maybe the event is 
+		//  consumed somewhere else before in the component hierarchy...)
+		this.iwop.myPropertyChange(new PropertyChangeEvent(this, 
+				JFileChooser.SELECTED_FILE_CHANGED_PROPERTY, "_dummy_", this.fctf.getText()));
+	}
 
 }
