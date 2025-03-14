@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>mitobo-plugins</artifactId>
-  <version>2.3.2-SNAPSHOT</version>
+  <version>2.4</version>
   <packaging>jar</packaging>
 
   <name>mitobo-plugins</name>
@@ -14,12 +14,12 @@
   <parent>
     <groupId>de.unihalle.informatik.MiToBo</groupId>
     <artifactId>mitobo-pom</artifactId>
-    <version>2.4-SNAPSHOT</version>
+    <version>2.4</version>
   </parent>
 
   <properties>
     <!-- specify versions of dependencies -->
-    <mitobo.version>2.3.2-SNAPSHOT</mitobo.version>
+    <mitobo.version>2.4</mitobo.version>
   </properties>
 
   <build>
