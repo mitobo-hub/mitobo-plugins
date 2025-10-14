@@ -10,6 +10,12 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Removed
 ### Fixed
 
+## [2.4] - 2025-10-14
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo-Plugins 2.5
+### Changed
+- bump to SciJava POM in version 43.0.0
+
 ## [2.4] - 2025-03-14
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo-Plugins 2.4
